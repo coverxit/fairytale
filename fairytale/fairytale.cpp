@@ -24,7 +24,8 @@ using namespace fairytale;
 BOOST_PYTHON_MODULE(fairytale) {
 	class_<Application>("Application")
 		.def("InitEngine",			&Application::InitEngine)
-		.def("StartMessagePump",	&Application::StartMessagePump)
+		.def("SetupScene",			&Application::SetupScene)
+		.def("StartRendering",		&Application::StartRendering)
 		;
 }
 

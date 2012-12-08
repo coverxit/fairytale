@@ -26,23 +26,58 @@ namespace fairytale
 	{
 		// Create Ogre::Root object with specified config files.
 		// I think plugins will be loaded automatically...
-		root_.reset(new Ogre::Root(
+		root.reset(new Ogre::Root(
 			pluginsfilename, configfilename, logfilename));
 
 		// I 
-		if(root_->showConfigDialog())
+		if(root->showConfigDialog())
 		{
-			window_.reset(root_->initialise(true, "fairytale"));
+			window.reset(root->initialise(true, "fairytale"));
 		} else {
-			throw std::runtime_error("Couldn't create config dialog.");
+			throw std::runtime_error("Unable to create the rendering window.");
 		}
 	}
 
-	void Application::StartMessagePump()
+	void Application::SetupScene()
 	{
-		while(!window_->isClosed())
+		Ogre::SceneManager*	scene				= root->createSceneManager(Ogre::ST_GENERIC, "TestSceneManager");
+		Ogre::SceneNode*	rootscenenode		= scene->getRootSceneNode();
+		Ogre::Camera*		camera				= scene->createCamera("TestCamera");
+		Ogre::SceneNode*	cameranode			= rootscenenode->createChildSceneNode("TestCameraNode");
+
+		cameranode->attachObject(camera);
+
+		float				viewportwidth		= 0.88f;
+		float				viewportheight		= 0.88f;
+		float				viewportleft		= (1.0f - viewportwidth) * 0.5f;
+		float				viewporttop			= (1.0f - viewportheight) * 0.5f;
+		unsigned short		mainviewportzorder	= 100;
+		Ogre::Viewport*		viewport			= window->addViewport(camera, mainviewportzorder, viewportleft, viewporttop, viewportwidth, viewportheight);
+
+		viewport->setAutoUpdated(true);
+		viewport->setBackgroundColour(Ogre::ColourValue(1,0,1));
+
+		float				ratio				= float(viewport->getActualWidth()) / float(viewport->getActualHeight());
+
+		camera->setAspectRatio(ratio);
+		camera->setNearClipDistance(1.5f);
+		camera->setFarClipDistance(3000.0f); 
+
+		window->setActive(true);
+		window->setAutoUpdated(false);
+
+		root->clearEventTimes();
+	}
+
+	void Application::StartRendering()
+	{
+		while(!window->isClosed())
 		{
+			window->update(false);
+			window->swapBuffers();
+			root->renderOneFrame();
 			Ogre::WindowEventUtilities::messagePump();
 		}
 	}
+
 };

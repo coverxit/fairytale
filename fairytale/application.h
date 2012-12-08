@@ -30,15 +30,16 @@ namespace fairytale
 {
 	class Application
 	{
-		boost::shared_ptr<Ogre::Root> root_;
-		boost::shared_ptr<Ogre::RenderWindow> window_;
+		boost::shared_ptr<Ogre::Root> root;
+		boost::shared_ptr<Ogre::RenderWindow> window;
 
 	public:
 		void InitEngine(
 			const std::string& pluginsfilename,
 			const std::string& configfilename,
 			const std::string& logfilename);
-		void StartMessagePump();
+		void SetupScene();
+		void StartRendering();
 	};
 };
 
