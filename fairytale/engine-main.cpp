@@ -14,11 +14,36 @@
  * limitations under the License.
  */
 
-#ifndef __FAIRYTALE_PCH_H__
-#define __FAIRYTALE_PCH_H__
+#include "engine-pch.h"
 
-#include <OGRE/Ogre.h>
-#include <OIS/OIS.h>
-#include <boost/python.hpp>
+// declared in "export-python.cpp"
+extern "C" void initfairytale();
 
-#endif
+using namespace std;
+
+int main()
+{
+	try
+	{
+		Py_Initialize();
+		initfairytale();
+		boost::python::import("scripts");
+		Py_Finalize();
+	}
+	catch(Ogre::Exception& e)
+    {
+        cerr << "An Ogre::Exception has occurred: " << endl << e.getFullDescription();
+		throw;
+    }
+	catch(std::exception& e)
+	{
+		cerr << "A std::exception has occurred: " << endl << e.what();
+		throw;
+	}
+	catch(boost::python::error_already_set&)
+	{
+		cerr << "A python exception has occurred" << endl;
+		throw;
+	}
+	return 0;
+}

@@ -14,30 +14,12 @@
  * limitations under the License.
  */
 
-#include "pch.h"
+#ifndef __FAIRYTALE_ENGINE_PCH_H__
+#define __FAIRYTALE_ENGINE_PCH_H__
 
-#include "application.h"
+#include <Ogre.h>
+#include <OIS.h>
+#include <boost/python.hpp>
+#include <leveldb.h>
 
-using namespace boost::python;
-using namespace fairytale;
-
-BOOST_PYTHON_MODULE(fairytale) {
-	class_<Application>("Application")
-		.def("InitEngine",			&Application::InitEngine)
-		.def("SetupScene",			&Application::SetupScene)
-		.def("StartRendering",		&Application::StartRendering)
-		;
-}
-
-int main()
-{
-	Py_Initialize();
-	initfairytale();
-#if OGRE_DEBUG_MODE == 1
-	PyRun_SimpleString("execfile('./scripts/fairytale_d.py')");
-#else
-	PyRun_SimpleString("execfile('./scripts/fairytale.py')");
 #endif
-	system("pause");
-	return 0;
-}
