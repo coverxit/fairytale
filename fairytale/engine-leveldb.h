@@ -18,10 +18,6 @@
 #define __FAIRYTALE_ENGINE_LEVELDB_H__
 
 #include "engine-pch.h"
-#include <boost/lexical_cast.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/serialization/singleton.hpp>
 
 namespace fairytale
 {

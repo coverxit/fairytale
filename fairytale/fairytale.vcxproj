@@ -40,23 +40,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>$(SolutionDir)$(Configuration)\;$(SolutionDir)lib;$(SolutionDir)release/;$(SolutionDir)debug/;$(SolutionDir)lib\debug;$(SolutionDir)lib\release;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)leveldb/include;$(SolutionDir)include/OGRE;$(SolutionDir)include;$(SolutionDir)include/OIS;$(SolutionDir)include/Python23;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)leveldb/include;$(SolutionDir)include/SkyX;$(SolutionDir)include/OGRE;$(SolutionDir)include;$(SolutionDir)include/OIS;$(SolutionDir)include/Python23;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LibraryPath>$(SolutionDir)$(Configuration)\;$(SolutionDir)lib;$(SolutionDir)release/;$(SolutionDir)debug/;$(SolutionDir)lib\debug;$(SolutionDir)lib\release;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)leveldb/include;$(SolutionDir)include/OGRE;$(SolutionDir)include;$(SolutionDir)include/OIS;$(SolutionDir)include/Python23;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)leveldb/include;$(SolutionDir)include/SkyX;$(SolutionDir)include/OGRE;$(SolutionDir)include;$(SolutionDir)include/OIS;$(SolutionDir)include/Python23;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalOptions>/Zm256 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zm300 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>engine-pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>OgreMain_d.lib;OgreOverlay_d.lib;OIS_d.lib;python27.lib;leveldb.lib;snappy.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OgreMain_d.lib;OgreOverlay_d.lib;OIS_d.lib;python27.lib;leveldb.lib;snappy.lib;SkyX_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -68,18 +68,19 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>engine-pch.h</PrecompiledHeaderFile>
-      <AdditionalOptions>/Zm256 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zm300 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>OgreMain.lib;OIS.lib;python27.lib;OgreOverlay.lib;leveldb.lib;snappy.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OgreMain.lib;OIS.lib;python27.lib;OgreOverlay.lib;leveldb.lib;snappy.lib;SkyX.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="engine-application.cpp" />
+    <ClCompile Include="engine-input.cpp" />
     <ClCompile Include="engine-main.cpp" />
     <ClCompile Include="engine-pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -87,11 +88,16 @@
     </ClCompile>
     <ClCompile Include="export-python.cpp" />
     <ClCompile Include="engine-leveldb.cpp" />
+    <ClCompile Include="game-env.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine-application.h" />
+    <ClInclude Include="engine-input.h" />
     <ClInclude Include="engine-leveldb.h" />
     <ClInclude Include="engine-pch.h" />
+    <ClInclude Include="game-env-test.h" />
+    <ClInclude Include="game-env.h" />
+    <ClInclude Include="util-singleton.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

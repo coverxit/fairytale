@@ -17,8 +17,6 @@
 #include "engine-pch.h"
 #include "engine-leveldb.h"
 
-#include <boost/scoped_ptr.hpp>
-
 namespace fairytale
 {
 	ConfigFile::ConfigFile()

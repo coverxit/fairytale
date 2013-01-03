@@ -16,9 +16,9 @@
 
 #include "engine-pch.h"
 #include "engine-application.h"
-
-#include <boost/thread.hpp>
-#include <boost/date_time.hpp>
+#include "engine-input.h"
+#include <Ogre/Overlay/OgreOverlaySystem.h>
+#include "game-env-test.h"
 
 namespace fairytale
 {
@@ -33,92 +33,96 @@ namespace fairytale
 		keyboard		= 0;
 		mouse			= 0;
 
-		shutdown		= false;
+		_shutdown		= false;
 	}
 
 	Application::~Application()
 	{
+		// It's said that if you don't do this you'll get a super surprise especially in linux...
 		if(inputmgr) OIS::InputManager::destroyInputSystem(inputmgr);
+
+		// Lead the rendering thread to die
+		shutdown();
 	}
 
-	bool Application::initOgre(Ogre::String wndtitle, OIS::KeyListener* keylistener, OIS::MouseListener* mouselistener)
+	void Application::initOgre(Ogre::String wndtitle, OIS::KeyListener* keylistener, OIS::MouseListener* mouselistener)
 	{
-		Ogre::LogManager* logmgr = new Ogre::LogManager();
-
-		log = Ogre::LogManager::getSingleton().createLog("logs/general.log", true);
-		log->setLogDetail(Ogre::LoggingLevel::LL_BOREME);
-		log->setTimeStampEnabled(true);
-
-		root.reset(new Ogre::Root("data/plugins.cfg", "data/engine.cfg", Ogre::StringUtil::BLANK));
-
-		if(!root->showConfigDialog())
-			return false;
-
-		renderwnd = root->initialise(true, wndtitle);
-
-		viewport = renderwnd->addViewport(0);
-		viewport->setBackgroundColour(Ogre::ColourValue(0.5f, 0.5f, 0.5f, 1.0f));
-
-		viewport->setCamera(0);
-
-		size_t hwnd = 0;
-		OIS::ParamList paramlist;
-		renderwnd->getCustomAttribute("WINDOW",& hwnd);
-
-		paramlist.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(hwnd)));
-
-		inputmgr = OIS::InputManager::createInputSystem(paramlist);
-
-		keyboard = static_cast<OIS::Keyboard*>(inputmgr->createInputObject(OIS::OISKeyboard, true));
-		mouse = static_cast<OIS::Mouse*>(inputmgr->createInputObject(OIS::OISMouse, true));
-
-		mouse->getMouseState().height = renderwnd->getHeight();
-		mouse->getMouseState().width = renderwnd->getWidth();
-
-		if(keylistener == 0)
-			keyboard->setEventCallback(this);
-		else
-			keyboard->setEventCallback(keylistener);
-
-		if(mouselistener == 0)
-			mouse->setEventCallback(this);
-		else
-			mouse->setEventCallback(mouselistener);
-
-		Ogre::String secName, typeName, archName;
-		Ogre::ConfigFile cfgfile;
-		cfgfile.load("data/resources.cfg");
-
-		Ogre::ConfigFile::SectionIterator seci = cfgfile.getSectionIterator();
-		while (seci.hasMoreElements())
+		// Init engine
 		{
-			secName = seci.peekNextKey();
-			Ogre::ConfigFile::SettingsMultiMap* settings = seci.getNext();
-			Ogre::ConfigFile::SettingsMultiMap::iterator i;
-			for (i = settings->begin(); i != settings->end(); ++i)
-			{
-				typeName = i->first;
-				archName = i->second;
-				Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
-			}
+			Ogre::LogManager* logmgr = new Ogre::LogManager();
+	
+			log = Ogre::LogManager::getSingleton().createLog("logs/general.log", true);
+			log->setLogDetail(Ogre::LoggingLevel::LL_BOREME);
+			log->setTimeStampEnabled(true);
+	
+			root.reset(new Ogre::Root("data/plugins.cfg", "data/engine.cfg", Ogre::StringUtil::BLANK));
+	
+			// To avoid annoying assertion
+			new Ogre::OverlaySystem();
+	
+			if(!root->showConfigDialog())
+				exit(0);
 		}
 
-		Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
-		Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+		// Create rendering window
+		{
+			renderwnd = root->initialise(true, wndtitle);
+	
+			viewport = renderwnd->addViewport(0);
+			viewport->setBackgroundColour(Ogre::ColourValue(0.0f, 0.0f, 0.0f, 1.0f));
+		}
 
-		//traymgr.reset(new OgreBites::SdkTrayManager("DefaultTrayMgr", renderwnd, OgreBites::InputContext(), 0));
+		// Init input system
+		{
+			size_t hwnd = 0;
+			OIS::ParamList paramlist;
+			renderwnd->getCustomAttribute("WINDOW", &hwnd);
 
-		timer = new Ogre::Timer();
-		timer->reset();
+			paramlist.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(hwnd)));
+			inputmgr = OIS::InputManager::createInputSystem(paramlist);
+	
+			keyboard = static_cast<OIS::Keyboard*>(inputmgr->createInputObject(OIS::OISKeyboard, true));
+			mouse = static_cast<OIS::Mouse*>(inputmgr->createInputObject(OIS::OISMouse, true));
+	
+			mouse->getMouseState().height = renderwnd->getHeight();
+			mouse->getMouseState().width = renderwnd->getWidth();
+
+			keyboard->setEventCallback(keylistener);
+			mouse->setEventCallback(mouselistener);
+		}
+
+		// Load resources
+		{
+			Ogre::String secName, typeName, archName;
+			Ogre::ConfigFile cfgfile;
+			cfgfile.load("data/resources.cfg");
+	
+			Ogre::ConfigFile::SectionIterator seci = cfgfile.getSectionIterator();
+			while(seci.hasMoreElements())
+			{
+				secName = seci.peekNextKey();
+				Ogre::ConfigFile::SettingsMultiMap* settings = seci.getNext();
+				Ogre::ConfigFile::SettingsMultiMap::iterator i;
+				for (i = settings->begin(); i != settings->end(); ++i)
+				{
+					typeName = i->first;
+					archName = i->second;
+					Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
+				}
+			}
+	
+			Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
+			Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+	
+			timer = new Ogre::Timer();
+			timer->reset();
+		}
 
 		renderwnd->setActive(true);
-
 		log->logMessage("Application initialized");
-
-		return true;
 	}
 
-	void Application::updateOgre(double timeSinceLastFrame)
+	void Application::_updateOgre(double timeSinceLastFrame)
 	{
 		return;
 	}
@@ -126,14 +130,12 @@ namespace fairytale
 	void Application::startLoop()
 	{
 		log->logMessage("preparing a basic scene...");
-
-		Ogre::Camera* cam;
-		Ogre::SceneManager* scenemgr = root->createSceneManager(Ogre::ST_GENERIC, "GameSceneMgr");
+		
+		scenemgr = root->createSceneManager(Ogre::ST_GENERIC, "GameSceneMgr");
 		scenemgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
 
 		cam = scenemgr->createCamera("GameCamera");
-		cam->setPosition(Ogre::Vector3(5, 60, 60));
-		cam->lookAt(Ogre::Vector3(0, 0, 0));
+		cam->setFarClipDistance(30000);
 		cam->setNearClipDistance(5);
 
 		cam->setAspectRatio(Ogre::Real(viewport->getActualWidth()) / Ogre::Real(viewport->getActualHeight()));
@@ -151,14 +153,46 @@ namespace fairytale
 
 		lNode->setPosition(Ogre::Vector3(0, 0, 0));
 
+		mCameraMan = new OgreBites::SdkCameraMan(cam);
+
+		mCameraMan->setTopSpeed(5);
+
+		sky.reset(new Environment::Sky());
+		sky->setWeather(mPresets[0]);
+
+		root->addFrameListener(this);
+
+		KeyListenerManager::getInstance().registerListener(KeyListenerManager::KEY_DOWN, OIS::KC_SYSRQ, [this](const OIS::KeyEvent&) {
+			renderwnd->writeContentsToTimestampedFile("fairytale_screenshot_", ".png");
+		});
+
+		KeyListenerManager::getInstance().registerListener(KeyListenerManager::KEY_DOWN, OIS::KC_ESCAPE, [this](const OIS::KeyEvent&) {
+			shutdown();
+		});
+
+		_mainloop.reset(new boost::thread(boost::bind(&Application::_doMainLoop, this)));
+		_waitForUserInput();
+	}
+
+	void Application::_waitForUserInput()
+	{
+		std::string cmd;
+		while(std::cin >> cmd)
+		{
+			boost::python::exec(cmd.c_str());
+		}
+	}
+
+	void Application::_doMainLoop()
+	{
 		log->logMessage("Main loop entered");
 
 		int timesincelastframe = 1;
 		int starttime = 0;
 
-		while(!shutdown)
+		while(!(_shutdown || renderwnd->isClosed()))
 		{
-			if(renderwnd->isClosed()) shutdown = true;
+			boost::unique_lock<boost::mutex>(_mutex);
 
 			Ogre::WindowEventUtilities::messagePump();
 
@@ -169,7 +203,7 @@ namespace fairytale
 				keyboard->capture();
 				mouse->capture();
 
-				updateOgre(timesincelastframe);
+				_updateOgre(timesincelastframe);
 				root->renderOneFrame();
 
 				timesincelastframe = timer->getMillisecondsCPU() - starttime;
@@ -183,39 +217,15 @@ namespace fairytale
 		log->logMessage("Main loop quit");
 	}
 
-	bool Application::keyPressed(const OIS::KeyEvent& keyeventref)
+	void Application::shutdown()
 	{
-		if(keyboard->isKeyDown(OIS::KC_SYSRQ))
-		{
-			renderwnd->writeContentsToTimestampedFile("fairytale_screenshot_", ".jpg");
-			return true;
-		}
-
-		if(keyboard->isKeyDown(OIS::KC_ESCAPE))
-		{
-			shutdown = true;
-		}
-
-		return true;
+		_shutdown = true;
+		exit(0);
 	}
 
-	bool Application::keyReleased(const OIS::KeyEvent& keyeventref)
+	bool Application::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
-		return true;
-	}
-
-	bool Application::mouseMoved(const OIS::MouseEvent& evt)
-	{
-		return true;
-	}
-
-	bool Application::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
-	{
-		return true;
-	}
-
-	bool Application::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
-	{
+		mCameraMan->frameRenderingQueued(evt);
 		return true;
 	}
 };

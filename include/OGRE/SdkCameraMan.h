@@ -204,7 +204,8 @@ namespace OgreBites
 					mVelocity += accel * topSpeed * evt.timeSinceLastFrame * 10;
 				}
 				// if not accelerating, try to stop in a certain time
-				else mVelocity -= mVelocity * evt.timeSinceLastFrame * 10;
+				// else mVelocity -= mVelocity * evt.timeSinceLastFrame * 10;
+				else mVelocity = 0;
 
 				Ogre::Real tooSmall = std::numeric_limits<Ogre::Real>::epsilon();
 

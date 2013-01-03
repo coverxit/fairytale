@@ -29,7 +29,7 @@
 #define __SdkTrays_H__
 
 #include "Ogre.h"
-#include "OgreOverlay/OgreOverlaySystem.h"
+#include "OgreOverlaySystem.h"
 #include <math.h>
 
 #include "OgreTimer.h"

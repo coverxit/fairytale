@@ -17,28 +17,31 @@
 #include "engine-pch.h"
 #include "engine-application.h"
 #include "engine-leveldb.h"
+#include "engine-input.h"
 
 using namespace fairytale;
 using namespace boost::python;
 
-struct ApplicationExport
-{
-	static void initEngine(const std::string& wndtitle)
-	{
-		Application::get_mutable_instance().initOgre(wndtitle, 0, 0);
-	}
+typedef void (*func_void_const_str)(const std::string&);
+typedef void (*func_void_void)(void);	
 
-	static void startLoop()
-	{
-		Application::get_mutable_instance().startLoop();
-	}
-};
+class ApplicationExport {};
 
 BOOST_PYTHON_MODULE(fairytale)
 {
 	class_<ApplicationExport>("Application")
-		.def("initEngine",			&ApplicationExport::initEngine)		.staticmethod("initEngine")
-		.def("startLoop",			&ApplicationExport::startLoop)		.staticmethod("startLoop")
+		.def("initEngine",			(func_void_const_str)([](const std::string& wndtitle) {
+			Application::getInstance().initOgre(
+				wndtitle,
+				(OIS::KeyListener*)KeyListenerManager::getInstancePtr(),
+				(OIS::MouseListener*)MouseListenerManager::getInstancePtr());
+		}))																.staticmethod("initEngine")
+		.def("startLoop",			(func_void_void)([]() {
+			Application::getInstance().startLoop();
+		}))																.staticmethod("startLoop")
+		.def("shutdown",			(func_void_void)([]() {
+			Application::getInstance().shutdown();
+		}))																.staticmethod("shutdown")
 		;
 
 	class_<ConfigFile>("ConfigFile", init<const std::string&>())

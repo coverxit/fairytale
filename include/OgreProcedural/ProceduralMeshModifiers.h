@@ -148,6 +148,7 @@ public:
 class _ProceduralExport SphereUVModifier
 {
 	TriangleBuffer* mInputTriangleBuffer;
+
 public:
 	void modify();
 
@@ -161,17 +162,18 @@ public:
 		mInputTriangleBuffer = inputTriangleBuffer;
 		return *this;
 	}
-
 };
 //--------------------------------------------------------------
 class _ProceduralExport HemisphereUVModifier
 {
 	TriangleBuffer* mInputTriangleBuffer;
+	Ogre::RealRect mTextureRectangleTop;
+	Ogre::RealRect mTextureRectangleBottom;
 public:
 	void modify();
 
 	HemisphereUVModifier() :
-			mInputTriangleBuffer(0)
+		mInputTriangleBuffer(0), mTextureRectangleTop(0,0,1,1), mTextureRectangleBottom(0,0,1,1)
 	{
 	}
 
@@ -181,16 +183,30 @@ public:
 		return *this;
 	}
 
+	HemisphereUVModifier& setTextureRectangleTop(const Ogre::RealRect& textureRectangleTop)
+	{
+		mTextureRectangleTop = textureRectangleTop;
+		return *this;
+	}
+
+	HemisphereUVModifier& setTextureRectangleBottom(const Ogre::RealRect& textureRectangleBottom)
+	{
+		mTextureRectangleBottom = textureRectangleBottom;
+		return *this;
+	}
+
 };
 //--------------------------------------------------------------
 class _ProceduralExport CylinderUVModifier
 {
 	TriangleBuffer* mInputTriangleBuffer;
+	Ogre::Real mHeight;
+	Ogre::Real mRadius;
 public:
 	void modify();
 
 	CylinderUVModifier() :
-			mInputTriangleBuffer(0)
+			mInputTriangleBuffer(0), mRadius(1.0), mHeight(1.0)
 	{
 	}
 
@@ -200,15 +216,27 @@ public:
 		return *this;
 	}
 
+	CylinderUVModifier& setRadius(Ogre::Real radius)
+	{
+		mRadius = radius;
+		return *this;
+	}
+
+	CylinderUVModifier& setHeight(Ogre::Real height)
+		{
+			mHeight = height;
+			return *this;
+		}
+
 };
 //--------------------------------------------------------------
 class _ProceduralExport BoxUVModifier
 {
 public:
 	enum MappingType
-		{
-			MT_FULL, MT_CROSS, MT_PACKED
-		};
+	{
+		MT_FULL, MT_CROSS, MT_PACKED
+	};
 private:
 	TriangleBuffer* mInputTriangleBuffer;
 	MappingType mMappingType;
@@ -226,6 +254,24 @@ public:
 	BoxUVModifier& setInputTriangleBuffer(TriangleBuffer* inputTriangleBuffer)
 	{
 		mInputTriangleBuffer = inputTriangleBuffer;
+		return *this;
+	}
+
+	BoxUVModifier& setBoxSize(const Ogre::Vector3& boxSize)
+	{
+		mBoxSize = boxSize;
+		return *this;
+	}
+
+	BoxUVModifier& setBoxCenter(const Ogre::Vector3& boxCenter)
+	{
+		mBoxCenter = boxCenter;
+		return *this;
+	}
+
+	BoxUVModifier& setMappingType(MappingType mappingType)
+	{
+		mMappingType = mappingType;
 		return *this;
 	}
 };

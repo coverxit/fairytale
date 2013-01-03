@@ -17,41 +17,56 @@
 #ifndef __FAIRYTALE_ENGINE_APPLICATION_H__
 #define __FAIRYTALE_ENGINE_APPLICATION_H__
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/serialization/singleton.hpp>
-
 #include "engine-pch.h"
+#include "util-singleton.h"
+#include "game-env.h"
+#include <SkyX.h>
+#include <Ogre/SdkCameraMan.h>
+
+struct SkyXSettings;
 
 namespace fairytale
 {
-	class Application : public boost::serialization::singleton<Application>, OIS::KeyListener, OIS::MouseListener
+	class Application : public Singleton<Application>, Ogre::FrameListener
 	{
 	public:
 		Application();
 		~Application();
 
-		bool initOgre(Ogre::String wndtitle, OIS::KeyListener* keylistener = 0, OIS::MouseListener* mouselistener = 0);
-		void updateOgre(double timesincelastframe);
+		void initOgre(Ogre::String wndtitle, OIS::KeyListener* keylistener, OIS::MouseListener* mouselistener);
 		void startLoop();
+		void shutdown();
+		
+		boost::scoped_ptr<Ogre::Root>			root;
+		Ogre::RenderWindow*						renderwnd;
+		Ogre::Viewport*							viewport;
+		Ogre::Log*								log;
+		Ogre::Timer*							timer;
 
-		bool keyPressed(const OIS::KeyEvent& keyeventref);
-		bool keyReleased(const OIS::KeyEvent& keyeventref);
+		OIS::InputManager*						inputmgr;
+		OIS::Keyboard*							keyboard;
+		OIS::Mouse*								mouse;
 
-		bool mouseMoved(const OIS::MouseEvent& evt);
-		bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
-		bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
+		Ogre::Camera*							cam; // debug
 
-		boost::scoped_ptr<Ogre::Root>					root;
-		Ogre::RenderWindow*								renderwnd;
-		Ogre::Viewport*									viewport;
-		Ogre::Log*										log;
-		Ogre::Timer*									timer;
+		Ogre::FrameEvent						m_FrameEvent; // debug
 
-		OIS::InputManager*								inputmgr;
-		OIS::Keyboard*									keyboard;
-		OIS::Mouse*										mouse;
+		OgreBites::SdkCameraMan*				mCameraMan; // debug
+		Ogre::SceneManager*						scenemgr; // debug
 
-		bool											shutdown;
+		boost::scoped_ptr<Environment::Sky>		sky;
+
+		bool frameRenderingQueued(const Ogre::FrameEvent& evt); // debug
+
+	private:
+		void _doMainLoop();
+		void _updateOgre(double timesincelastframe);
+		void _waitForUserInput();
+
+		typedef boost::scoped_ptr<boost::thread> ThreadPtr;
+
+		ThreadPtr						_mainloop;
+		bool							_shutdown;
 	};
 };
 
