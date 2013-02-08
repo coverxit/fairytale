@@ -27,34 +27,38 @@ struct SkyXSettings;
 
 namespace fairytale
 {
-	class Application : public Singleton<Application>, Ogre::FrameListener
+	class Application : public Ogre::FrameListener
 	{
 	public:
-		Application();
-		~Application();
-
-		void initOgre(Ogre::String wndtitle, OIS::KeyListener* keylistener, OIS::MouseListener* mouselistener);
+		void initOgre(const Ogre::String& logFile, const Ogre::String& configFile);
+		void showConfigDialog();
+		void initWindow(const Ogre::String& wndtitle);
 		void startLoop();
 		void shutdown();
-		
-		boost::scoped_ptr<Ogre::Root>			root;
-		Ogre::RenderWindow*						renderwnd;
-		Ogre::Viewport*							viewport;
-		Ogre::Log*								log;
-		Ogre::Timer*							timer;
 
-		OIS::InputManager*						inputmgr;
-		OIS::Keyboard*							keyboard;
-		OIS::Mouse*								mouse;
+		void addResourceLocation(const Ogre::String& group, const Ogre::String& type, const Ogre::String& archiveName);
+		void addResourceLocationsFromFile(const Ogre::String& filename);
+		void loadPlugin(const Ogre::String& filename);
+		void loadPluginsFromDirectory(const std::string& dir);
 
-		Ogre::Camera*							cam; // debug
-
-		Ogre::FrameEvent						m_FrameEvent; // debug
-
-		OgreBites::SdkCameraMan*				mCameraMan; // debug
-		Ogre::SceneManager*						scenemgr; // debug
-
-		boost::scoped_ptr<Environment::Sky>		sky;
+		static boost::scoped_ptr<Ogre::Root>			ogreRoot;
+		static Ogre::RenderWindow*						renderWnd;
+		static Ogre::Viewport*							defaultViewport;
+		static Ogre::Log*								defaultLog;
+		static Ogre::Timer*								mainLoopTimer;
+		 
+		static OIS::InputManager*						inputMgr;
+		static OIS::Keyboard*							keyboard;
+		static OIS::Mouse*								mouse;
+		 
+		static Ogre::Camera*							deaultCam; // debug
+		 
+		static Ogre::FrameEvent							frameEvent; // debug
+		 
+		static OgreBites::SdkCameraMan*					debugCameraMan; // debug
+		static Ogre::SceneManager*						debugSceneMgr; // debug
+		 
+		static boost::scoped_ptr<Environment::Sky>		defaultSky;
 
 		bool frameRenderingQueued(const Ogre::FrameEvent& evt); // debug
 
@@ -65,8 +69,10 @@ namespace fairytale
 
 		typedef boost::scoped_ptr<boost::thread> ThreadPtr;
 
-		ThreadPtr						_mainloop;
-		bool							_shutdown;
+		static ThreadPtr								_gameConsole;
+		static std::deque<std::string>					_commands;
+		static boost::mutex								_commandsDequeMutex;
+		static bool										_shutdown;
 	};
 };
 

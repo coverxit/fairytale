@@ -2,16 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fairytale", "fairytale\fairytale.vcxproj", "{E9F76FCF-00D4-4786-8EE4-4D8E93EB7D55}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1A8F0541-6F09-493E-9C33-86E172B08384} = {1A8F0541-6F09-493E-9C33-86E172B08384}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "leveldb", "leveldb\leveldb.vcxproj", "{1A8F0541-6F09-493E-9C33-86E172B08384}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3011B725-2A1A-4C74-95C8-82C097FC5D3C} = {3011B725-2A1A-4C74-95C8-82C097FC5D3C}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "snappy", "snappy\snappy.vcxproj", "{3011B725-2A1A-4C74-95C8-82C097FC5D3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,14 +13,6 @@ Global
 		{E9F76FCF-00D4-4786-8EE4-4D8E93EB7D55}.Debug|Win32.Build.0 = Debug|Win32
 		{E9F76FCF-00D4-4786-8EE4-4D8E93EB7D55}.Release|Win32.ActiveCfg = Release|Win32
 		{E9F76FCF-00D4-4786-8EE4-4D8E93EB7D55}.Release|Win32.Build.0 = Release|Win32
-		{1A8F0541-6F09-493E-9C33-86E172B08384}.Debug|Win32.ActiveCfg = Debug|Win32
-		{1A8F0541-6F09-493E-9C33-86E172B08384}.Debug|Win32.Build.0 = Debug|Win32
-		{1A8F0541-6F09-493E-9C33-86E172B08384}.Release|Win32.ActiveCfg = Release|Win32
-		{1A8F0541-6F09-493E-9C33-86E172B08384}.Release|Win32.Build.0 = Release|Win32
-		{3011B725-2A1A-4C74-95C8-82C097FC5D3C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{3011B725-2A1A-4C74-95C8-82C097FC5D3C}.Debug|Win32.Build.0 = Debug|Win32
-		{3011B725-2A1A-4C74-95C8-82C097FC5D3C}.Release|Win32.ActiveCfg = Release|Win32
-		{3011B725-2A1A-4C74-95C8-82C097FC5D3C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

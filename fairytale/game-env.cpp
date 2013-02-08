@@ -22,7 +22,7 @@ namespace fairytale
 {
 	Environment::Sky::Sky() :
 		_basiccontroller(new SkyX::BasicController()),
-		_skyx(new SkyX::SkyX(Application::getInstance().scenemgr, _basiccontroller))
+		_skyx(new SkyX::SkyX(Application::debugSceneMgr, _basiccontroller))
 	{
 		_skyx->create();
 
@@ -38,8 +38,8 @@ namespace fairytale
 		// -1 means that there's not falling limit.
 		_skyx->getVCloudsManager()->getVClouds()->setDistanceFallingParams(Ogre::Vector2(2,-1));
 
-		Application::getInstance().root->addFrameListener(_skyx.get());
-		Application::getInstance().renderwnd->addListener(_skyx.get());
+		Application::ogreRoot->addFrameListener(_skyx.get());
+		Application::renderWnd->addListener(_skyx.get());
 	}
 
 	void Environment::Sky::setWeather(const Weather& weather)
@@ -84,7 +84,7 @@ namespace fairytale
 			if (!_skyx->getVCloudsManager()->isCreated())
 			{
 				// SkyX::MeshManager::getSkydomeRadius(...) works for both finite and infinite(=0) camera far clip distances
-				_skyx->getVCloudsManager()->create(_skyx->getMeshManager()->getSkydomeRadius(Application::getInstance().cam));
+				_skyx->getVCloudsManager()->create(_skyx->getMeshManager()->getSkydomeRadius(Application::deaultCam));
 			}
 		}
 		else

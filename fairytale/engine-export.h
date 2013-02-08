@@ -14,31 +14,13 @@
  * limitations under the License.
  */
 
-#include "engine-pch.h"
+#ifndef __FAIRYTALE_DATAINTERFACE_ENGINE_EXPORT_H__
+#define __FAIRYTALE_DATAINTERFACE_ENGINE_EXPORT_H__
 
-#include "engine-application.h"
+#ifdef LIBEXPORT
+#define FairytaleExport __declspec (dllexport)
+#else
+#define FairytaleExport __declspec (dllimport)
+#endif
 
-// declared in "export-python.cpp"
-extern "C" PyObject* PyInit_fairytale();
-
-using namespace std;
-using namespace fairytale;
-
-int main()
-{
-	try
-	{
-		PyImport_AppendInittab("fairytale", PyInit_fairytale);
-		Py_Initialize();
-		boost::python::import("scripts.beforeStartingMainLoop");
-		Application().startLoop();
-		Py_Finalize();
-	}
-	catch(...)
-	{
-		if(PyErr_Occurred())
-			PyErr_Print();
-		throw;
-	}
-	return 0;
-}
+#endif

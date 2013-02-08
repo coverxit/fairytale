@@ -7,14 +7,14 @@
     <Filter Include="export">
       <UniqueIdentifier>{5d4f353f-7bbd-4788-8a19-18f8bbb48b71}</UniqueIdentifier>
     </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{6b153a09-8ab8-428a-8e85-db2a69581513}</UniqueIdentifier>
+    </Filter>
     <Filter Include="game">
       <UniqueIdentifier>{b3e0e429-1401-4461-8fde-81123b59daf6}</UniqueIdentifier>
     </Filter>
     <Filter Include="game\env">
       <UniqueIdentifier>{6b508d68-2f1e-4b7e-8679-6ba87908e9da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="util">
-      <UniqueIdentifier>{6b153a09-8ab8-428a-8e85-db2a69581513}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,13 +30,13 @@
     <ClCompile Include="export-python.cpp">
       <Filter>export</Filter>
     </ClCompile>
-    <ClCompile Include="engine-leveldb.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
     <ClCompile Include="engine-input.cpp">
       <Filter>engine</Filter>
     </ClCompile>
     <ClCompile Include="game-env.cpp">
+      <Filter>game\env</Filter>
+    </ClCompile>
+    <ClCompile Include="hydraxtest.cpp">
       <Filter>game\env</Filter>
     </ClCompile>
   </ItemGroup>
@@ -45,9 +45,6 @@
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine-pch.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="engine-leveldb.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="game-env.h">
@@ -60,6 +57,12 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="game-env-test.h">
+      <Filter>game\env</Filter>
+    </ClInclude>
+    <ClInclude Include="engine-export.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="game-env-data.h">
       <Filter>game\env</Filter>
     </ClInclude>
   </ItemGroup>

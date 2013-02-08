@@ -36,7 +36,7 @@ namespace fairytale
 
 	bool KeyListenerManager::keyPressed(const OIS::KeyEvent& evt)
 	{
-		Application::getInstance().mCameraMan->injectKeyDown(evt);
+		Application::debugCameraMan->injectKeyDown(evt);
 
 		ListenerSet& set = _downlisteners[evt.key];
 
@@ -50,7 +50,7 @@ namespace fairytale
 
 	bool KeyListenerManager::keyReleased(const OIS::KeyEvent& evt)
 	{
-		Application::getInstance().mCameraMan->injectKeyUp(evt);
+		Application::debugCameraMan->injectKeyUp(evt);
 
 		ListenerSet& set = _uplisteners[evt.key];
 
@@ -84,7 +84,7 @@ namespace fairytale
 
 	bool MouseListenerManager::mouseMoved(const OIS::MouseEvent& evt)
 	{
-		Application::getInstance().mCameraMan->injectMouseMove(evt);
+		Application::debugCameraMan->injectMouseMove(evt);
 
 		for(MoveListenerSet::iterator iter(_movelisteners.begin()); iter != _movelisteners.end(); ++iter)
 		{
@@ -96,7 +96,7 @@ namespace fairytale
 
 	bool MouseListenerManager::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 	{
-		Application::getInstance().mCameraMan->injectMouseDown(evt, id);
+		Application::debugCameraMan->injectMouseDown(evt, id);
 
 		ClickListenerSet& set = _downlisteners[id];
 
@@ -110,7 +110,7 @@ namespace fairytale
 
 	bool MouseListenerManager::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 	{
-		Application::getInstance().mCameraMan->injectMouseUp(evt, id);
+		Application::debugCameraMan->injectMouseUp(evt, id);
 
 		ClickListenerSet& set = _downlisteners[id];
 

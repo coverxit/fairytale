@@ -16,45 +16,23 @@
 
 #include "engine-pch.h"
 #include "engine-application.h"
-#include "engine-leveldb.h"
 #include "engine-input.h"
 
 using namespace fairytale;
 using namespace boost::python;
 
-typedef void (*func_void_const_str)(const std::string&);
-typedef void (*func_void_void)(void);	
-
-class ApplicationExport {};
+typedef void (*func_ptr_Application_const_ref_str)(Application*, const std::string&);
 
 BOOST_PYTHON_MODULE(fairytale)
 {
-	class_<ApplicationExport>("Application")
-		.def("initEngine",			(func_void_const_str)([](const std::string& wndtitle) {
-			Application::getInstance().initOgre(
-				wndtitle,
-				(OIS::KeyListener*)KeyListenerManager::getInstancePtr(),
-				(OIS::MouseListener*)MouseListenerManager::getInstancePtr());
-		}))																.staticmethod("initEngine")
-		.def("startLoop",			(func_void_void)([]() {
-			Application::getInstance().startLoop();
-		}))																.staticmethod("startLoop")
-		.def("shutdown",			(func_void_void)([]() {
-			Application::getInstance().shutdown();
-		}))																.staticmethod("shutdown")
-		;
-
-	class_<ConfigFile>("ConfigFile", init<const std::string&>())
-		.def("set",					&ConfigFile::set)
-		.def("get",					&ConfigFile::get)
-		.def("remove",				&ConfigFile::remove)
-		.def("listAll",				&ConfigFile::listAll)
-		;
-
-	register_ptr_to_python<ConfigManager::ConfigPtr>();
-	class_<ConfigManager>("ConfigManager")
-		.def("get",					&ConfigManager::get)				.staticmethod("get")
-		.def("unload",				&ConfigManager::unload)				.staticmethod("unload")
-		.def("unloadAll",			&ConfigManager::unloadAll)			.staticmethod("unloadAll")
+	class_<Application>("Application")
+		.def("initOgre",						&Application::initOgre)
+		.def("showConfigDialog",				&Application::showConfigDialog)
+		.def("initWindow",						&Application::initWindow)
+		.def("shutdown",						&Application::shutdown)
+		.def("addResourceLocation",				&Application::addResourceLocation)
+		.def("addResourceLocationsFromFile",	&Application::addResourceLocationsFromFile)
+		.def("loadPlugin",						&Application::loadPlugin)
+		.def("loadPluginsFromDirectory",		&Application::loadPluginsFromDirectory)
 		;
 }

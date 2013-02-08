@@ -19,107 +19,145 @@
 #include "engine-input.h"
 #include <Ogre/Overlay/OgreOverlaySystem.h>
 #include "game-env-test.h"
+#include <boost/foreach.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
 
 namespace fairytale
 {
-	Application::Application()
+	boost::scoped_ptr<Ogre::Root>			Application::ogreRoot;
+	Ogre::RenderWindow*						Application::renderWnd = 0;
+	Ogre::Viewport*							Application::defaultViewport = 0;
+	Ogre::Log*								Application::defaultLog = 0;
+	Ogre::Timer*							Application::mainLoopTimer = 0;
+
+	OIS::InputManager*						Application::inputMgr = 0;
+	OIS::Keyboard*							Application::keyboard = 0;
+	OIS::Mouse*								Application::mouse = 0;
+
+	Ogre::Camera*							Application::deaultCam;
+
+	Ogre::FrameEvent						Application::frameEvent;
+
+	OgreBites::SdkCameraMan*				Application::debugCameraMan;
+	Ogre::SceneManager*						Application::debugSceneMgr;
+
+	boost::scoped_ptr<Environment::Sky>		Application::defaultSky;
+
+	Application::ThreadPtr					Application::_gameConsole;
+	std::deque<std::string>					Application::_commands;
+	boost::mutex							Application::_commandsDequeMutex;
+	bool									Application::_shutdown = false;
+
+	void Application::initOgre(const Ogre::String& logFile, const Ogre::String& configFile)
 	{
-		renderwnd		= 0;
-		viewport		= 0;
-		log				= 0;
-		timer			= 0;
+		// Init these f*cking singleton classes...
+		new Ogre::LogManager();
 
-		inputmgr		= 0;
-		keyboard		= 0;
-		mouse			= 0;
+		defaultLog = Ogre::LogManager::getSingleton().createLog(logFile, true);
+		defaultLog->setLogDetail(Ogre::LoggingLevel::LL_BOREME);
+		defaultLog->setTimeStampEnabled(true);
+	
+		ogreRoot.reset(new Ogre::Root(Ogre::StringUtil::BLANK, configFile, Ogre::StringUtil::BLANK));
 
-		_shutdown		= false;
+		new Ogre::OverlaySystem();
 	}
 
-	Application::~Application()
+	void Application::showConfigDialog()
 	{
-		// It's said that if you don't do this you'll get a super surprise especially in linux...
-		if(inputmgr) OIS::InputManager::destroyInputSystem(inputmgr);
-
-		// Lead the rendering thread to die
-		shutdown();
+		ogreRoot->showConfigDialog();
 	}
 
-	void Application::initOgre(Ogre::String wndtitle, OIS::KeyListener* keylistener, OIS::MouseListener* mouselistener)
+	void Application::initWindow(const Ogre::String& wndtitle)
 	{
-		// Init engine
-		{
-			Ogre::LogManager* logmgr = new Ogre::LogManager();
-	
-			log = Ogre::LogManager::getSingleton().createLog("logs/general.log", true);
-			log->setLogDetail(Ogre::LoggingLevel::LL_BOREME);
-			log->setTimeStampEnabled(true);
-	
-			root.reset(new Ogre::Root("data/plugins.cfg", "data/engine.cfg", Ogre::StringUtil::BLANK));
-	
-			// To avoid annoying assertion
-			new Ogre::OverlaySystem();
-	
-			if(!root->showConfigDialog())
-				exit(0);
-		}
-
 		// Create rendering window
 		{
-			renderwnd = root->initialise(true, wndtitle);
+			renderWnd = ogreRoot->initialise(true, wndtitle);
 	
-			viewport = renderwnd->addViewport(0);
-			viewport->setBackgroundColour(Ogre::ColourValue(0.0f, 0.0f, 0.0f, 1.0f));
+			defaultViewport = renderWnd->addViewport(0);
+			defaultViewport->setBackgroundColour(Ogre::ColourValue(0.0f, 0.0f, 0.0f, 1.0f));
 		}
 
 		// Init input system
 		{
-			size_t hwnd = 0;
+			size_t hWnd = 0;
 			OIS::ParamList paramlist;
-			renderwnd->getCustomAttribute("WINDOW", &hwnd);
+			renderWnd->getCustomAttribute("WINDOW", &hWnd);
 
-			paramlist.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(hwnd)));
-			inputmgr = OIS::InputManager::createInputSystem(paramlist);
+			paramlist.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(hWnd)));
+			inputMgr = OIS::InputManager::createInputSystem(paramlist);
 	
-			keyboard = static_cast<OIS::Keyboard*>(inputmgr->createInputObject(OIS::OISKeyboard, true));
-			mouse = static_cast<OIS::Mouse*>(inputmgr->createInputObject(OIS::OISMouse, true));
+			keyboard = static_cast<OIS::Keyboard*>(inputMgr->createInputObject(OIS::OISKeyboard, true));
+			mouse = static_cast<OIS::Mouse*>(inputMgr->createInputObject(OIS::OISMouse, true));
 	
-			mouse->getMouseState().height = renderwnd->getHeight();
-			mouse->getMouseState().width = renderwnd->getWidth();
+			mouse->getMouseState().height = renderWnd->getHeight();
+			mouse->getMouseState().width = renderWnd->getWidth();
 
-			keyboard->setEventCallback(keylistener);
-			mouse->setEventCallback(mouselistener);
+			keyboard->setEventCallback((OIS::KeyListener*)KeyListenerManager::getInstancePtr());
+			mouse->setEventCallback((OIS::MouseListener*)MouseListenerManager::getInstancePtr());
 		}
 
-		// Load resources
+		Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
+		Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+
+		mainLoopTimer = new Ogre::Timer();
+		mainLoopTimer->reset();
+
+		renderWnd->setActive(true);
+	}
+
+	void Application::addResourceLocation(const Ogre::String& group, const Ogre::String& type, const Ogre::String& archiveName)
+	{
+		Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archiveName, type, group);
+	}
+
+	void Application::addResourceLocationsFromFile(const Ogre::String& filename)
+	{
+		using namespace boost::property_tree;
+		ptree resourcesFileList;
+		json_parser::read_json(filename, resourcesFileList);
+
 		{
-			Ogre::String secName, typeName, archName;
-			Ogre::ConfigFile cfgfile;
-			cfgfile.load("data/resources.cfg");
-	
-			Ogre::ConfigFile::SectionIterator seci = cfgfile.getSectionIterator();
-			while(seci.hasMoreElements())
+			Ogre::String secName, typeName;
+			BOOST_FOREACH(const ptree::value_type& sec, resourcesFileList)
 			{
-				secName = seci.peekNextKey();
-				Ogre::ConfigFile::SettingsMultiMap* settings = seci.getNext();
-				Ogre::ConfigFile::SettingsMultiMap::iterator i;
-				for (i = settings->begin(); i != settings->end(); ++i)
+				secName = sec.first;
+				BOOST_FOREACH(const ptree::value_type& type, sec.second)
 				{
-					typeName = i->first;
-					archName = i->second;
-					Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
+					typeName = type.first;
+					BOOST_FOREACH(const ptree::value_type& arch, type.second)
+					{
+						Ogre::ResourceGroupManager::getSingleton().addResourceLocation(arch.second.get<std::string>(""), typeName, secName);
+					}
 				}
 			}
-	
-			Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
-			Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
-	
-			timer = new Ogre::Timer();
-			timer->reset();
 		}
+	}
 
-		renderwnd->setActive(true);
-		log->logMessage("Application initialized");
+	void Application::loadPlugin(const Ogre::String& filename)
+	{
+		ogreRoot->loadPlugin(filename);
+	}
+
+	void Application::loadPluginsFromDirectory(const std::string& dir)
+	{
+		using namespace boost::filesystem;
+
+		path plugins(dir, native);
+		boost::regex filter(".*\.dll");
+
+		if(exists(plugins))
+		{
+			directory_iterator end;
+			boost::smatch what;
+			for(directory_iterator iter(plugins); iter != end; ++iter)
+			{
+				if(is_regular_file(*iter) && boost::regex_match(iter->path().string(), what, filter))
+					ogreRoot->loadPlugin(iter->path().string());
+			}
+		}
 	}
 
 	void Application::_updateOgre(double timeSinceLastFrame)
@@ -129,103 +167,128 @@ namespace fairytale
 
 	void Application::startLoop()
 	{
-		log->logMessage("preparing a basic scene...");
+		defaultLog->logMessage("preparing a basic scene...");
 		
-		scenemgr = root->createSceneManager(Ogre::ST_GENERIC, "GameSceneMgr");
-		scenemgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
+		debugSceneMgr = ogreRoot->createSceneManager(Ogre::ST_GENERIC, "GameSceneMgr");
+		debugSceneMgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));
 
-		cam = scenemgr->createCamera("GameCamera");
-		cam->setFarClipDistance(30000);
-		cam->setNearClipDistance(5);
+		deaultCam = debugSceneMgr->createCamera("GameCamera");
+		deaultCam->setFarClipDistance(30000);
+		deaultCam->setNearClipDistance(5);
 
-		cam->setAspectRatio(Ogre::Real(viewport->getActualWidth()) / Ogre::Real(viewport->getActualHeight()));
+		deaultCam->setAspectRatio(Ogre::Real(defaultViewport->getActualWidth()) / Ogre::Real(defaultViewport->getActualHeight()));
 
-		viewport->setCamera(cam);
+		defaultViewport->setCamera(deaultCam);
 
-		Ogre::SceneNode* camnode = scenemgr->getRootSceneNode()->createChildSceneNode("MyFirstCameraNode");
-		camnode->attachObject(cam);
+		Ogre::SceneNode* camnode = debugSceneMgr->getRootSceneNode()->createChildSceneNode("MyFirstCameraNode");
+		camnode->attachObject(deaultCam);
 
 
-		Ogre::Entity* head = scenemgr->createEntity("ogrehead.mesh");
+		Ogre::Entity* head = debugSceneMgr->createEntity("ogrehead.mesh");
 
-		Ogre::SceneNode* lNode = scenemgr->getRootSceneNode()->createChildSceneNode();
+		Ogre::SceneNode* lNode = debugSceneMgr->getRootSceneNode()->createChildSceneNode();
 		lNode->attachObject(head);
 
 		lNode->setPosition(Ogre::Vector3(0, 0, 0));
 
-		mCameraMan = new OgreBites::SdkCameraMan(cam);
+		debugCameraMan = new OgreBites::SdkCameraMan(deaultCam);
 
-		mCameraMan->setTopSpeed(5);
+		debugCameraMan->setTopSpeed(5);
 
-		sky.reset(new Environment::Sky());
-		sky->setWeather(mPresets[0]);
+		//defaultSky.reset(new Environment::Sky());
+		//defaultSky->setWeather(mPresets[1]);
 
-		root->addFrameListener(this);
+		ogreRoot->addFrameListener(this);
 
 		KeyListenerManager::getInstance().registerListener(KeyListenerManager::KEY_DOWN, OIS::KC_SYSRQ, [this](const OIS::KeyEvent&) {
-			renderwnd->writeContentsToTimestampedFile("fairytale_screenshot_", ".png");
+			renderWnd->writeContentsToTimestampedFile("screenshots/fairytale_screenshot_", ".png");
 		});
 
 		KeyListenerManager::getInstance().registerListener(KeyListenerManager::KEY_DOWN, OIS::KC_ESCAPE, [this](const OIS::KeyEvent&) {
 			shutdown();
 		});
 
-		_mainloop.reset(new boost::thread(boost::bind(&Application::_doMainLoop, this)));
-		_waitForUserInput();
+		_doMainLoop();
+	}
+
+	void Application::_doMainLoop()
+	{
+		defaultLog->logMessage("Main loop entered");
+
+		_gameConsole.reset(new boost::thread(boost::bind(&Application::_waitForUserInput, this)));
+
+		int timesincelastframe = 1;
+		int starttime = 0;
+
+		while(!(_shutdown || renderWnd->isClosed()))
+		{
+			// process commands
+			{
+				boost::mutex::scoped_lock lock(_commandsDequeMutex);
+				while(!_commands.empty())
+				{
+					try
+					{
+						PyRun_SimpleString(_commands.front().c_str());
+					}
+					catch(...)
+					{
+						if(PyErr_Occurred())
+							PyErr_Print();
+					}
+					_commands.pop_front();
+				}
+			}
+			
+			{
+				Ogre::WindowEventUtilities::messagePump();
+	
+				starttime = mainLoopTimer->getMillisecondsCPU();
+	
+				keyboard->capture();
+				mouse->capture();
+	
+				_updateOgre(timesincelastframe);
+				ogreRoot->renderOneFrame();
+	
+				timesincelastframe = mainLoopTimer->getMillisecondsCPU() - starttime;
+			}
+		}
+
+		if(inputMgr) OIS::InputManager::destroyInputSystem(inputMgr);
+		defaultLog->logMessage("Main loop quit");
 	}
 
 	void Application::_waitForUserInput()
 	{
 		std::string cmd;
-		while(std::cin >> cmd)
+		while(!_shutdown)
 		{
-			boost::python::exec(cmd.c_str());
-		}
-	}
-
-	void Application::_doMainLoop()
-	{
-		log->logMessage("Main loop entered");
-
-		int timesincelastframe = 1;
-		int starttime = 0;
-
-		while(!(_shutdown || renderwnd->isClosed()))
-		{
-			boost::unique_lock<boost::mutex>(_mutex);
-
-			Ogre::WindowEventUtilities::messagePump();
-
-			if(renderwnd->isActive())
+			try
 			{
-				starttime = timer->getMillisecondsCPU();
-
-				keyboard->capture();
-				mouse->capture();
-
-				_updateOgre(timesincelastframe);
-				root->renderOneFrame();
-
-				timesincelastframe = timer->getMillisecondsCPU() - starttime;
+				std::cout << ">>> ";
+				std::getline(std::cin, cmd);
+				boost::mutex::scoped_lock lock(_commandsDequeMutex);
+				_commands.push_back(cmd);
 			}
-			else
+			catch(...)
 			{
-				boost::this_thread::sleep(boost::posix_time::seconds(1));
+				if(PyErr_Occurred())
+					PyErr_Print();
 			}
+			std::cin.clear();
+			fflush(stdin);
 		}
-
-		log->logMessage("Main loop quit");
 	}
 
 	void Application::shutdown()
 	{
 		_shutdown = true;
-		exit(0);
 	}
 
 	bool Application::frameRenderingQueued(const Ogre::FrameEvent& evt)
 	{
-		mCameraMan->frameRenderingQueued(evt);
+		debugCameraMan->frameRenderingQueued(evt);
 		return true;
 	}
 };
