@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-#ifndef __FAIRYTALE_UTIL_SINGLETON_H__
-#define __FAIRYTALE_UTIL_SINGLETON_H__
+#ifndef __FAIRYTALE_UTIL_FILE_H__
+#define __FAIRYTALE_UTIL_FILE_H__
 
 #include "engine-pch.h"
 
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
+
 namespace fairytale
 {
-	template<class T>
-	// This implementation is NOT Thread-Safe. But here i have a mutex lock for you.
-	class Singleton : public boost::noncopyable
+	enum DirectoryProcessMode
 	{
-	public:
-		static T& getInstance()
-		{
-			return *getInstancePtr();
-		}
-
-		static T* getInstancePtr()
-		{
-			static boost::scoped_ptr<T> _instance(new T());
-			return _instance.get();
-		}
-
-		boost::mutex _mutex;
+		ONLY_FILE,
+		ONLY_DIRECTORY,
+		ALL
 	};
-}
 
-#define LOCK_AND_GET_INSTANCE_PTR(typename, ptrname) boost::mutex::scoped_lock __##typename_temp_lock(typename::getInstancePtr()->_mutex); typename* ptrname = typename::getInstancePtr();
+	void processDirectory(const std::string& dir, boost::function<void(const std::string&)> action, DirectoryProcessMode mode, bool includesubdirs);
+	void processFilesInDirectory(const std::string& dir, boost::function<void(const std::string&)> action, bool includesubdirs, const std::string& filefilter = "");
+}
 
 #endif

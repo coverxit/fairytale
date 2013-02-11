@@ -14,33 +14,11 @@
  * limitations under the License.
  */
 
+#ifndef __FAIRYTALE_GAME_TERRAIN_H__
+#define __FAIRYTALE_GAME_TERRAIN_H__
+
 #include "engine-pch.h"
 
-#include "engine-application.h"
 
-// declared in "export-python.cpp"
-extern "C" PyObject* PyInit_fairytale();
-extern "C" PyObject* PyInit_OIS();
 
-using namespace std;
-using namespace fairytale;
-
-int main()
-{
-	try
-	{
-		PyImport_AppendInittab("fairytale",	PyInit_fairytale);
-		PyImport_AppendInittab("OIS",		PyInit_OIS);
-		Py_Initialize();
-		boost::python::import("scripts.beforeStartingMainLoop");
-		Application().startLoop();
-		Py_Finalize();
-	}
-	catch(...)
-	{
-		if(PyErr_Occurred())
-			PyErr_Print();
-		throw;
-	}
-	return 0;
-}
+#endif

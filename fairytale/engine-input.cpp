@@ -18,6 +18,8 @@
 #include "engine-input.h"
 #include "engine-application.h"
 
+extern OgreBites::SdkCameraMan*					debugCameraMan;
+
 namespace fairytale
 {
 	void KeyListenerManager::registerListener(KeyListenerManager::OpreateType type, OIS::KeyCode key, const KeyListenerManager::KeyListener& listener)
@@ -36,7 +38,7 @@ namespace fairytale
 
 	bool KeyListenerManager::keyPressed(const OIS::KeyEvent& evt)
 	{
-		Application::debugCameraMan->injectKeyDown(evt);
+		debugCameraMan->injectKeyDown(evt);
 
 		ListenerSet& set = _downlisteners[evt.key];
 
@@ -50,7 +52,7 @@ namespace fairytale
 
 	bool KeyListenerManager::keyReleased(const OIS::KeyEvent& evt)
 	{
-		Application::debugCameraMan->injectKeyUp(evt);
+		debugCameraMan->injectKeyUp(evt);
 
 		ListenerSet& set = _uplisteners[evt.key];
 
@@ -84,7 +86,7 @@ namespace fairytale
 
 	bool MouseListenerManager::mouseMoved(const OIS::MouseEvent& evt)
 	{
-		Application::debugCameraMan->injectMouseMove(evt);
+		debugCameraMan->injectMouseMove(evt);
 
 		for(MoveListenerSet::iterator iter(_movelisteners.begin()); iter != _movelisteners.end(); ++iter)
 		{
@@ -96,7 +98,7 @@ namespace fairytale
 
 	bool MouseListenerManager::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 	{
-		Application::debugCameraMan->injectMouseDown(evt, id);
+		debugCameraMan->injectMouseDown(evt, id);
 
 		ClickListenerSet& set = _downlisteners[id];
 
@@ -110,7 +112,7 @@ namespace fairytale
 
 	bool MouseListenerManager::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 	{
-		Application::debugCameraMan->injectMouseUp(evt, id);
+		debugCameraMan->injectMouseUp(evt, id);
 
 		ClickListenerSet& set = _downlisteners[id];
 

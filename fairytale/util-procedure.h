@@ -14,33 +14,12 @@
  * limitations under the License.
  */
 
-#include "engine-pch.h"
+#ifndef __FAIRYTALE_UTIL_PROCEDURE_H__
+#define __FAIRYTALE_UTIL_PROCEDURE_H__
 
-#include "engine-application.h"
+#include <iostream>
 
-// declared in "export-python.cpp"
-extern "C" PyObject* PyInit_fairytale();
-extern "C" PyObject* PyInit_OIS();
+#define ONE_OFF_FUNCTION(returntype, value) do { static bool __called = false; if(__called) { std::cout << "Warning: Function " << __FUNCTION__ << " is a one-off function." << std::endl; return returntype(value); } else __called = true; } while(false)
+#define ONE_OFF_FUNCTION_VOID ONE_OFF_FUNCTION(void,)
 
-using namespace std;
-using namespace fairytale;
-
-int main()
-{
-	try
-	{
-		PyImport_AppendInittab("fairytale",	PyInit_fairytale);
-		PyImport_AppendInittab("OIS",		PyInit_OIS);
-		Py_Initialize();
-		boost::python::import("scripts.beforeStartingMainLoop");
-		Application().startLoop();
-		Py_Finalize();
-	}
-	catch(...)
-	{
-		if(PyErr_Occurred())
-			PyErr_Print();
-		throw;
-	}
-	return 0;
-}
+#endif

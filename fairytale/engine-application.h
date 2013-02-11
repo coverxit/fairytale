@@ -18,8 +18,8 @@
 #define __FAIRYTALE_ENGINE_APPLICATION_H__
 
 #include "engine-pch.h"
-#include "util-singleton.h"
 #include "game-env.h"
+#include "util-singleton.h"
 #include <SkyX.h>
 #include <Ogre/SdkCameraMan.h>
 
@@ -27,52 +27,61 @@ struct SkyXSettings;
 
 namespace fairytale
 {
-	class Application : public Ogre::FrameListener
+	class CoreMembers : public fairytale::Singleton<CoreMembers>
+	{
+	public:
+		boost::scoped_ptr<Ogre::Root>			ogreRoot;
+		Ogre::RenderWindow*						renderWnd;
+		Ogre::Viewport*							defaultViewport;
+		Ogre::Log*								defaultLog;
+		Ogre::Timer*							mainLoopTimer;
+
+		OIS::InputManager*						inputMgr;
+		OIS::Keyboard*							keyboard;
+		OIS::Mouse*								mouse;
+
+		friend class Application;
+
+	private:
+		ThreadPtr								_gameConsole;
+		std::deque<std::string>					_commands;
+		boost::mutex							_commandsDequeMutex;
+		bool									_inited;
+		bool									_shutdown;
+
+	public:
+		CoreMembers()
+		{
+			renderWnd		= 0;
+			defaultViewport	= 0;
+			defaultLog		= 0;
+			mainLoopTimer	= 0;
+
+			inputMgr		= 0;
+			keyboard		= 0;
+			mouse			= 0;
+
+			_inited			= false;
+			_shutdown		= false;
+		}
+	};
+
+	class Application
 	{
 	public:
 		void initOgre(const Ogre::String& logFile, const Ogre::String& configFile);
-		void showConfigDialog();
+		bool showConfigDialog();
 		void initWindow(const Ogre::String& wndtitle);
 		void startLoop();
 		void shutdown();
 
-		void addResourceLocation(const Ogre::String& group, const Ogre::String& type, const Ogre::String& archiveName);
-		void addResourceLocationsFromFile(const Ogre::String& filename);
+		void addResourceLocation(const std::string& dir);
 		void loadPlugin(const Ogre::String& filename);
 		void loadPluginsFromDirectory(const std::string& dir);
 
-		static boost::scoped_ptr<Ogre::Root>			ogreRoot;
-		static Ogre::RenderWindow*						renderWnd;
-		static Ogre::Viewport*							defaultViewport;
-		static Ogre::Log*								defaultLog;
-		static Ogre::Timer*								mainLoopTimer;
-		 
-		static OIS::InputManager*						inputMgr;
-		static OIS::Keyboard*							keyboard;
-		static OIS::Mouse*								mouse;
-		 
-		static Ogre::Camera*							deaultCam; // debug
-		 
-		static Ogre::FrameEvent							frameEvent; // debug
-		 
-		static OgreBites::SdkCameraMan*					debugCameraMan; // debug
-		static Ogre::SceneManager*						debugSceneMgr; // debug
-		 
-		static boost::scoped_ptr<Environment::Sky>		defaultSky;
-
-		bool frameRenderingQueued(const Ogre::FrameEvent& evt); // debug
-
 	private:
 		void _doMainLoop();
-		void _updateOgre(double timesincelastframe);
 		void _waitForUserInput();
-
-		typedef boost::scoped_ptr<boost::thread> ThreadPtr;
-
-		static ThreadPtr								_gameConsole;
-		static std::deque<std::string>					_commands;
-		static boost::mutex								_commandsDequeMutex;
-		static bool										_shutdown;
 	};
 };
 

@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef __FAIRYTALE_ENGINE_PCH_H__
-#define __FAIRYTALE_ENGINE_PCH_H__
-
-#include <Ogre.h>
-#include <OIS.h>
-
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/python.hpp>
-#include <boost/thread.hpp>
-#include <boost/date_time.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
-typedef boost::scoped_ptr<boost::thread> ThreadPtr;
-
+#ifdef _DEBUG
+	#pragma comment(lib, "OgreMain_d.lib")
+	#pragma comment(lib, "OIS_d.lib")
+	#pragma comment(lib, "python33.lib")
+	#pragma comment(lib, "OgreOverlay_d.lib")
+	#pragma comment(lib, "SkyX_d.lib")
+	#pragma comment(lib, "BtOgre.lib")
+#else
+	#pragma comment(lib, "OgreMain.lib")
+	#pragma comment(lib, "OIS.lib")
+	#pragma comment(lib, "python33.lib")
+	#pragma comment(lib, "OgreOverlay.lib")
+	#pragma comment(lib, "SkyX.lib")
+	#pragma	comment(lib, "BtOgre.lib")
+	#pragma	comment(lib, "bulletdynamics.lib")
+	#pragma	comment(lib, "bulletcollision.lib")
+	#pragma	comment(lib, "linearmath.lib")
 #endif

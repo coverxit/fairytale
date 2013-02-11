@@ -16,6 +16,12 @@
     <Filter Include="game\env">
       <UniqueIdentifier>{6b508d68-2f1e-4b7e-8679-6ba87908e9da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="game\terrain">
+      <UniqueIdentifier>{cdfeb576-d26c-45f6-8188-ff057e986b01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="debugger">
+      <UniqueIdentifier>{69ac4f10-279b-4c55-a719-f27f3d60a9b6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="engine-pch.cpp">
@@ -38,6 +44,15 @@
     </ClCompile>
     <ClCompile Include="hydraxtest.cpp">
       <Filter>game\env</Filter>
+    </ClCompile>
+    <ClCompile Include="util-file.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="engine-linking.cpp">
+      <Filter>engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +79,15 @@
     </ClInclude>
     <ClInclude Include="game-env-data.h">
       <Filter>game\env</Filter>
+    </ClInclude>
+    <ClInclude Include="util-file.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util-procedure.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="game-terrain.h">
+      <Filter>game\terrain</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
