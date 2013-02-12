@@ -25,6 +25,24 @@
 
 namespace fairytale
 {
+	class BulletFrameListener : public Ogre::FrameListener
+	{
+		bool frameStarted(const Ogre::FrameEvent &evt)
+		{
+			LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
+
+			//Update Bullet world. Don't forget the debugDrawWorld() part!
+			core->phyWorld->stepSimulation(evt.timeSinceLastFrame, 10);
+			core->phyWorld->debugDrawWorld();
+
+			//Shows debug if F3 key down.
+			core->dbgDraw->setDebugMode(CoreMembers::getInstancePtr()->keyboard->isKeyDown(OIS::KC_F3));
+			core->dbgDraw->step();
+
+			return true;
+		}
+	};
+
 	void Application::initOgre(const Ogre::String& logFile, const Ogre::String& configFile)
 	{
 		ONE_OFF_FUNCTION_VOID;
@@ -88,9 +106,6 @@ namespace fairytale
 		Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
 		Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
-		core->mainLoopTimer = new Ogre::Timer();
-		core->mainLoopTimer->reset();
-
 		core->renderWnd->setActive(true);
 	}
 
@@ -131,7 +146,22 @@ namespace fairytale
 	{
 		{
 			LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
-	
+
+			core->defaultSceneMgr = core->ogreRoot->createSceneManager(Ogre::ST_GENERIC, "__fairytale_default_scenemanager");
+			core->defaultCam = core->defaultSceneMgr->createCamera("__fairytale_default_camera");
+			core->defaultViewport->setCamera(core->defaultCam);
+
+			//Bullet initialisation.
+			core->broadPhase.reset(new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024));
+			core->collisionConfig.reset(new btDefaultCollisionConfiguration());
+			core->dispatcher.reset(new btCollisionDispatcher(core->collisionConfig.get()));
+			core->solver.reset(new btSequentialImpulseConstraintSolver());
+
+			core->phyWorld.reset(new btDiscreteDynamicsWorld(core->dispatcher.get(), core->broadPhase.get(), core->solver.get(), core->collisionConfig.get()));
+			core->phyWorld->setGravity(btVector3(0,-9.8,0));
+
+			core->ogreRoot->addFrameListener(new BulletFrameListener());
+
 			KeyListenerManager::getInstance().registerListener(KeyListenerManager::KEY_DOWN, OIS::KC_SYSRQ, [this, &core](const OIS::KeyEvent&) {
 				core->renderWnd->writeContentsToTimestampedFile("./screenshots/fairytale_screenshot_", ".png");
 			});
@@ -150,26 +180,23 @@ namespace fairytale
 
 			core->defaultLog->logMessage("Main loop entered");
 			core->_gameConsole.reset(new boost::thread(boost::bind(&Application::_waitForUserInput, this)));
-
-			void doBulletTest();
-			doBulletTest();
 		}
 
-		int timesincelastframe = 1;
-		int starttime = 0;
+		void doBulletTest();
+		doBulletTest();
 
-		CoreMembers* core = CoreMembers::getInstancePtr();
+		CoreMembers* coreptr = CoreMembers::getInstancePtr();
 
-		while(!(core->_shutdown || core->renderWnd->isClosed()))
+		while(!(coreptr->_shutdown || coreptr->renderWnd->isClosed()))
 		{
 			// process commands
 			{
-				boost::mutex::scoped_lock lock(core->_commandsDequeMutex);
-				while(!core->_commands.empty())
+				boost::mutex::scoped_lock lock(coreptr->_commandsDequeMutex);
+				while(!coreptr->_commands.empty())
 				{
 					try
 					{
-						PyRun_SimpleString(core->_commands.front().c_str());
+						PyRun_SimpleString(coreptr->_commands.front().c_str());
 						std::cout << ">>> ";
 					}
 					catch(...)
@@ -177,26 +204,22 @@ namespace fairytale
 						if(PyErr_Occurred())
 							PyErr_Print();
 					}
-					core->_commands.pop_front();
+					coreptr->_commands.pop_front();
 				}
 			}
-			
+
 			{
 				Ogre::WindowEventUtilities::messagePump();
 	
-				starttime = core->mainLoopTimer->getMillisecondsCPU();
+				coreptr->keyboard->capture();
+				coreptr->mouse->capture();
 	
-				core->keyboard->capture();
-				core->mouse->capture();
-	
-				core->ogreRoot->renderOneFrame();
-	
-				timesincelastframe = core->mainLoopTimer->getMillisecondsCPU() - starttime;
+				coreptr->ogreRoot->renderOneFrame();
 			}
 		}
 
-		if(core->inputMgr) OIS::InputManager::destroyInputSystem(core->inputMgr);
-		core->defaultLog->logMessage("Main loop quit");
+		if(coreptr->inputMgr) OIS::InputManager::destroyInputSystem(coreptr->inputMgr);
+		coreptr->defaultLog->logMessage("Main loop quit");
 	}
 
 	void Application::_waitForUserInput()
@@ -208,8 +231,9 @@ namespace fairytale
 			try
 			{
 				std::getline(std::cin, cmd);
-				LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
-				core->_commands.push_back(cmd);
+				CoreMembers* coreptr = CoreMembers::getInstancePtr();
+				boost::mutex::scoped_lock lock(coreptr->_commandsDequeMutex);
+				coreptr->_commands.push_back(cmd);
 			}
 			catch(...)
 			{

@@ -20,10 +20,9 @@
 #include "engine-pch.h"
 #include "game-env.h"
 #include "util-singleton.h"
-#include <SkyX.h>
-#include <Ogre/SdkCameraMan.h>
-
-struct SkyXSettings;
+#include "BtOgrePG.h"
+#include "BtOgreGP.h"
+#include "BtOgreExtras.h"
 
 namespace fairytale
 {
@@ -34,11 +33,19 @@ namespace fairytale
 		Ogre::RenderWindow*						renderWnd;
 		Ogre::Viewport*							defaultViewport;
 		Ogre::Log*								defaultLog;
-		Ogre::Timer*							mainLoopTimer;
+		Ogre::Camera*							defaultCam;
+		Ogre::SceneManager*						defaultSceneMgr;
 
 		OIS::InputManager*						inputMgr;
 		OIS::Keyboard*							keyboard;
 		OIS::Mouse*								mouse;
+
+		boost::scoped_ptr<btAxisSweep3>							broadPhase;
+		boost::scoped_ptr<btDefaultCollisionConfiguration>		collisionConfig;
+		boost::scoped_ptr<btCollisionDispatcher>				dispatcher;
+		boost::scoped_ptr<btSequentialImpulseConstraintSolver>	solver;
+		boost::scoped_ptr<btDynamicsWorld>						phyWorld;
+		boost::scoped_ptr<BtOgre::DebugDrawer>					dbgDraw;
 
 		friend class Application;
 
@@ -55,7 +62,8 @@ namespace fairytale
 			renderWnd		= 0;
 			defaultViewport	= 0;
 			defaultLog		= 0;
-			mainLoopTimer	= 0;
+			defaultCam		= 0;
+			defaultSceneMgr	= 0;
 
 			inputMgr		= 0;
 			keyboard		= 0;
@@ -63,6 +71,19 @@ namespace fairytale
 
 			_inited			= false;
 			_shutdown		= false;
+		}
+
+		~CoreMembers()
+		{
+			dbgDraw.reset();
+			phyWorld.reset();
+
+			solver.reset();
+			dispatcher.reset();
+			collisionConfig.reset();
+			broadPhase.reset();
+
+			ogreRoot.reset();
 		}
 	};
 

@@ -14,11 +14,12 @@
  */
 
 #include "engine-pch.h"
-#include "BtOgrePG.h"
-#include "BtOgreGP.h"
-#include "BtOgreExtras.h"
+
 #include "engine-application.h"
 #include "engine-input.h"
+
+#include <SkyX.h>
+#include <Ogre/SdkCameraMan.h>
 
 using namespace Ogre;
 using namespace fairytale;
@@ -32,35 +33,6 @@ using namespace fairytale;
 
 OgreBites::SdkCameraMan*	debugCameraMan;
 
-namespace Globals
-{
-    btDynamicsWorld *phyWorld;
-    BtOgre::DebugDrawer *dbgdraw;
-}
-
-/*
- * =====================================================================================
- *        Class:  BtOgreTestFrameListener
- *  Description:  Derives from ExampleFrameListener and overrides stuf.
- * =====================================================================================
- */
-
-class BtOgreTestFrameListener : public FrameListener
-{
-	bool frameStarted(const FrameEvent &evt)
-	{
-	    //Update Bullet world. Don't forget the debugDrawWorld() part!
-	    Globals::phyWorld->stepSimulation(evt.timeSinceLastFrame, 10);
-	    Globals::phyWorld->debugDrawWorld();
-
-	    //Shows debug if F3 key down.
-	    Globals::dbgdraw->setDebugMode(CoreMembers::getInstancePtr()->keyboard->isKeyDown(OIS::KC_F3));
-	    Globals::dbgdraw->step();
-
-	    return true;
-	}
-};
-
 /*
  * =====================================================================================
  *        Class:  BtOgreTestApplication
@@ -71,10 +43,7 @@ class BtOgreTestFrameListener : public FrameListener
 class BtOgreTestApplication
 {
     protected:
-	btAxisSweep3 *mBroadphase;
-	btDefaultCollisionConfiguration *mCollisionConfig;
-	btCollisionDispatcher *mDispatcher;
-	btSequentialImpulseConstraintSolver *mSolver;
+
 
 	Ogre::SceneNode *mNinjaNode;
 	Ogre::Entity *mNinjaEntity;
@@ -103,44 +72,29 @@ class BtOgreTestApplication
 			Real(CoreMembers::getInstancePtr()->defaultViewport->getActualWidth()) / Real(CoreMembers::getInstancePtr()->defaultViewport->getActualHeight()));
 
 		CoreMembers::getInstancePtr()->defaultViewport->setCamera(mCamera);
-
-	    //Bullet initialisation.
-	    mBroadphase = new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024);
-	    mCollisionConfig = new btDefaultCollisionConfiguration();
-	    mDispatcher = new btCollisionDispatcher(mCollisionConfig);
-	    mSolver = new btSequentialImpulseConstraintSolver();
-
-	    Globals::phyWorld = new btDiscreteDynamicsWorld(mDispatcher, mBroadphase, mSolver, mCollisionConfig);
-	    Globals::phyWorld->setGravity(btVector3(0,-9.8,0));
 	}
 
 	~BtOgreTestApplication()
 	{
+		LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
             //Free rigid bodies
-            Globals::phyWorld->removeRigidBody(mNinjaBody);
+            core->phyWorld->removeRigidBody(mNinjaBody);
             delete mNinjaBody->getMotionState();
             delete mNinjaBody;
             delete mNinjaShape;
 
-            Globals::phyWorld->removeRigidBody(mGroundBody);
+           core->phyWorld->removeRigidBody(mGroundBody);
             delete mGroundBody->getMotionState();
             delete mGroundBody;
             delete mGroundShape->getMeshInterface();
             delete mGroundShape;
-
-	    //Free Bullet stuff.
-            delete Globals::dbgdraw;
-            delete Globals::phyWorld;
-
-	    delete mSolver;
-	    delete mDispatcher;
-	    delete mCollisionConfig;
-	    delete mBroadphase;
 	}
 
  
 	void createScene(void)
 	{
+		LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
+
 		debugCameraMan = new OgreBites::SdkCameraMan(mCamera);
 		debugCameraMan->setTopSpeed(5);
 
@@ -148,8 +102,8 @@ class BtOgreTestApplication
 	    // Debug drawing!
 	    //----------------------------------------------------------
 
-	    Globals::dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), Globals::phyWorld);
-	    Globals::phyWorld->setDebugDrawer(Globals::dbgdraw);
+	    core->dbgDraw.reset(new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), core->phyWorld.get()));
+	    core->phyWorld->setDebugDrawer(core->dbgDraw.get());
 
 	    //----------------------------------------------------------
 	    // Ninja!
@@ -178,7 +132,7 @@ class BtOgreTestApplication
 
 	    //Create the Body.
 	    mNinjaBody = new btRigidBody(mass, ninjaState, mNinjaShape, inertia);
-	    Globals::phyWorld->addRigidBody(mNinjaBody);
+	    core->phyWorld->addRigidBody(mNinjaBody);
 
 	    //----------------------------------------------------------
 	    // Ground!
@@ -201,7 +155,7 @@ class BtOgreTestApplication
 
 	    //Create the Body.
 	    mGroundBody = new btRigidBody(0, groundState, mGroundShape, btVector3(0,0,0));
-	    Globals::phyWorld->addRigidBody(mGroundBody);
+	    core->phyWorld->addRigidBody(mGroundBody);
 	}
 };
 
@@ -209,5 +163,4 @@ void doBulletTest()
 {
 	static BtOgreTestApplication app;
 	app.createScene();
-	CoreMembers::getInstancePtr()->ogreRoot->addFrameListener(new BtOgreTestFrameListener());
 }

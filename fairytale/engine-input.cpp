@@ -18,6 +18,8 @@
 #include "engine-input.h"
 #include "engine-application.h"
 
+#include <Ogre/SdkCameraMan.h>
+
 extern OgreBites::SdkCameraMan*					debugCameraMan;
 
 namespace fairytale
