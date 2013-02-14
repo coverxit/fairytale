@@ -19,6 +19,7 @@
 
 #include <Ogre.h>
 #include <OIS.h>
+#include <Ogre/Overlay/OgreOverlaySystem.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
@@ -31,6 +32,7 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/regex.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 

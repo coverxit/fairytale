@@ -18,35 +18,59 @@
 #include "engine-input.h"
 #include "engine-application.h"
 
-#include <Ogre/SdkCameraMan.h>
-
-extern OgreBites::SdkCameraMan*					debugCameraMan;
-
 namespace fairytale
 {
-	void KeyListenerManager::registerListener(KeyListenerManager::OpreateType type, OIS::KeyCode key, const KeyListenerManager::KeyListener& listener)
+	void KeyListenerManager::bindKey(OIS::KeyCode keycode, KeyState state, const KeyHandler& action)
 	{
-		switch(type)
+		switch(state)
 		{
-		case KEY_UP:
-			_uplisteners[key].push_back(listener);
-			break;
+		case BOTH:
+		case DOWN:
+			_pressbinds[keycode] = action;
+			if(state == DOWN)
+				break;
 
-		case KEY_DOWN:
-			_downlisteners[key].push_back(listener);
+		case UP:
+			_releasebinds[keycode] = action;
 			break;
 		}
 	}
 
+	void KeyListenerManager::unbindKey(OIS::KeyCode keycode, KeyState state)
+	{
+		switch(state)
+		{
+		case BOTH:
+		case DOWN:
+			_pressbinds.erase(keycode);
+			if(state == DOWN)
+				break;
+
+		case UP:
+			_releasebinds.erase(keycode);
+			break;
+		}
+	}
+
+	void KeyListenerManager::registerListener(const std::string& name, boost::shared_ptr<OIS::KeyListener> listener)
+	{
+		_general[name] = listener;
+	}
+
+	void KeyListenerManager::unregisterListener(const std::string& name)
+	{
+		_general.erase(name);
+	}
+
 	bool KeyListenerManager::keyPressed(const OIS::KeyEvent& evt)
 	{
-		debugCameraMan->injectKeyDown(evt);
+		KeyActionMap::iterator actioniter(_pressbinds.find(evt.key));
+		if(actioniter != _pressbinds.end())
+			actioniter->second(evt);
 
-		ListenerSet& set = _downlisteners[evt.key];
-
-		for(ListenerSet::iterator iter(set.begin()); iter != set.end(); ++iter)
+		for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
 		{
-			(*iter)(evt);
+			iter->second->keyPressed(evt);
 		}
 
 		return true;
@@ -54,45 +78,35 @@ namespace fairytale
 
 	bool KeyListenerManager::keyReleased(const OIS::KeyEvent& evt)
 	{
-		debugCameraMan->injectKeyUp(evt);
+		KeyActionMap::iterator actioniter(_releasebinds.find(evt.key));
+		if(actioniter != _releasebinds.end())
+			actioniter->second(evt);
 
-		ListenerSet& set = _uplisteners[evt.key];
-
-		for(ListenerSet::iterator iter(set.begin()); iter != set.end(); ++iter)
+		for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
 		{
-			(*iter)(evt);
+			iter->second->keyReleased(evt);
 		}
 
 		return true;
 
 	}
 
-	void MouseListenerManager::registerMoveListener(const MouseMoveListener& listener)
+	void MouseListenerManager::registerListener(const std::string& name, boost::shared_ptr<OIS::MouseListener> listener)
 	{
-		_movelisteners.push_back(listener);
+		_general[name] = listener;
+
 	}
 
-	void MouseListenerManager::registerClickListener(OpreateType type, OIS::MouseButtonID btn, const MouseClickListener& listener)
+	void MouseListenerManager::unregisterListener(const std::string& name)
 	{
-		switch(type)
-		{
-		case MOUSE_UP:
-			_uplisteners[btn].push_back(listener);
-			break;
-
-		case MOUSE_DOWN:
-			_downlisteners[btn].push_back(listener);
-			break;
-		}
+		_general.erase(name);
 	}
 
 	bool MouseListenerManager::mouseMoved(const OIS::MouseEvent& evt)
 	{
-		debugCameraMan->injectMouseMove(evt);
-
-		for(MoveListenerSet::iterator iter(_movelisteners.begin()); iter != _movelisteners.end(); ++iter)
+		for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
 		{
-			(*iter)(evt);
+			iter->second->mouseMoved(evt);
 		}
 
 		return true;
@@ -100,13 +114,9 @@ namespace fairytale
 
 	bool MouseListenerManager::mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 	{
-		debugCameraMan->injectMouseDown(evt, id);
-
-		ClickListenerSet& set = _downlisteners[id];
-
-		for(ClickListenerSet::iterator iter(set.begin()); iter != set.end(); ++iter)
+		for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
 		{
-			(*iter)(evt, id);
+			iter->second->mousePressed(evt, id);
 		}
 
 		return true;
@@ -114,13 +124,9 @@ namespace fairytale
 
 	bool MouseListenerManager::mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 	{
-		debugCameraMan->injectMouseUp(evt, id);
-
-		ClickListenerSet& set = _downlisteners[id];
-
-		for(ClickListenerSet::iterator iter(set.begin()); iter != set.end(); ++iter)
+		for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
 		{
-			(*iter)(evt, id);
+			iter->second->mouseReleased(evt, id);
 		}
 
 		return true;

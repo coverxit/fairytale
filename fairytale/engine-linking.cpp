@@ -20,7 +20,7 @@
 	#pragma comment(lib, "python33.lib")
 	#pragma comment(lib, "OgreOverlay_d.lib")
 	#pragma comment(lib, "SkyX_d.lib")
-	#pragma comment(lib, "BtOgre.lib")
+	#pragma comment(lib, "BtOgre_d.lib")
 #else
 	#pragma comment(lib, "OgreMain.lib")
 	#pragma comment(lib, "OIS.lib")

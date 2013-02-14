@@ -17,9 +17,7 @@
 
 #include "engine-application.h"
 #include "engine-input.h"
-
-#include <SkyX.h>
-#include <Ogre/SdkCameraMan.h>
+#include "debug-cameraman.h"
 
 using namespace Ogre;
 using namespace fairytale;
@@ -31,7 +29,7 @@ using namespace fairytale;
  * =====================================================================================
  */
 
-OgreBites::SdkCameraMan*	debugCameraMan;
+boost::shared_ptr<fairytale::DebugCameraMan> debugCameraMan;
 
 /*
  * =====================================================================================
@@ -62,8 +60,8 @@ class BtOgreTestApplication
 	{
 		mSceneMgr = CoreMembers::getInstancePtr()->ogreRoot->createSceneManager(ST_GENERIC, "ExampleSMInstance");
 		mCamera = mSceneMgr->createCamera("PlayerCam");
-		mCamera->setFarClipDistance(30000);
-		mCamera->setNearClipDistance(5);
+		mCamera->setFarClipDistance(10000);
+		mCamera->setNearClipDistance(0.05);
 		//Some normal stuff.
 		mSceneMgr->setAmbientLight(ColourValue(0.7,0.7,0.7));
 		mCamera->setPosition(Vector3(10,10,10));
@@ -72,6 +70,26 @@ class BtOgreTestApplication
 			Real(CoreMembers::getInstancePtr()->defaultViewport->getActualWidth()) / Real(CoreMembers::getInstancePtr()->defaultViewport->getActualHeight()));
 
 		CoreMembers::getInstancePtr()->defaultViewport->setCamera(mCamera);
+
+		debugCameraMan.reset(new DebugCameraMan(mCamera));
+		debugCameraMan->setTopSpeed(5);
+
+		{
+			LOCK_AND_GET_INSTANCE_PTR(KeyListenerManager, Keyboard);
+			Keyboard->registerListener("SDK_CAMERA_MAN", debugCameraMan);
+			LOCK_AND_GET_INSTANCE_PTR(MouseListenerManager, Mouse);
+			Mouse->registerListener("SDK_CAMERA_MAN", debugCameraMan);
+		}
+
+		LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
+		core->ogreRoot->addFrameListener(new DebugCameraManFrameListener(debugCameraMan));
+
+		//----------------------------------------------------------
+		// Debug drawing!
+		//----------------------------------------------------------
+
+		core->dbgDraw.reset(new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), core->phyWorld.get()));
+		core->phyWorld->setDebugDrawer(core->dbgDraw.get());
 	}
 
 	~BtOgreTestApplication()
@@ -94,16 +112,6 @@ class BtOgreTestApplication
 	void createScene(void)
 	{
 		LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
-
-		debugCameraMan = new OgreBites::SdkCameraMan(mCamera);
-		debugCameraMan->setTopSpeed(5);
-
-	    //----------------------------------------------------------
-	    // Debug drawing!
-	    //----------------------------------------------------------
-
-	    core->dbgDraw.reset(new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), core->phyWorld.get()));
-	    core->phyWorld->setDebugDrawer(core->dbgDraw.get());
 
 	    //----------------------------------------------------------
 	    // Ninja!
@@ -139,10 +147,10 @@ class BtOgreTestApplication
 	    //----------------------------------------------------------
 
 	    //Create Ogre stuff.
-	    //MeshManager::getSingleton().createPlane("groundPlane", "General", Plane(Vector3::UNIT_Y, 0), 100, 100, 
-	    //10, 10, true, 1, 5, 5, Vector3::UNIT_Z);
-	    mGroundEntity = mSceneMgr->createEntity("groundEntity", "TestLevel_b0.mesh");
-	    //mGroundEntity->setMaterialName("Examples/Rockwall");
+	    MeshManager::getSingleton().createPlane("groundPlane", "General", Plane(Vector3::UNIT_Y, 0), 1000, 1000, 
+	    10, 10, true, 1, 5, 5, Vector3::UNIT_Z);
+	    mGroundEntity = mSceneMgr->createEntity("groundEntity", "groundPlane");
+	    mGroundEntity->setMaterialName("TechDemo/Ground");
 	    mSceneMgr->getRootSceneNode()->createChildSceneNode("groundNode")->attachObject(mGroundEntity);
 
 	    //Create the ground shape.

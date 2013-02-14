@@ -16,9 +16,6 @@
 
 #include "engine-pch.h"
 
-#include <boost/foreach.hpp>
-#include <boost/regex.hpp>
-
 #include "util-file.h"
 
 namespace fairytale

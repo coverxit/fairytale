@@ -36,7 +36,12 @@ int main()
 		Application().startLoop();
 		Py_Finalize();
 	}
-	catch(...)
+	catch(Ogre::Exception& e)
+	{
+		std::cout << e.what() << std::endl;
+		throw;
+	}
+	catch(boost::python::error_already_set)
 	{
 		if(PyErr_Occurred())
 			PyErr_Print();

@@ -18,7 +18,6 @@
 #define __FAIRYTALE_ENGINE_APPLICATION_H__
 
 #include "engine-pch.h"
-#include "game-env.h"
 #include "util-singleton.h"
 #include "BtOgrePG.h"
 #include "BtOgreGP.h"
@@ -57,34 +56,8 @@ namespace fairytale
 		bool									_shutdown;
 
 	public:
-		CoreMembers()
-		{
-			renderWnd		= 0;
-			defaultViewport	= 0;
-			defaultLog		= 0;
-			defaultCam		= 0;
-			defaultSceneMgr	= 0;
-
-			inputMgr		= 0;
-			keyboard		= 0;
-			mouse			= 0;
-
-			_inited			= false;
-			_shutdown		= false;
-		}
-
-		~CoreMembers()
-		{
-			dbgDraw.reset();
-			phyWorld.reset();
-
-			solver.reset();
-			dispatcher.reset();
-			collisionConfig.reset();
-			broadPhase.reset();
-
-			ogreRoot.reset();
-		}
+		CoreMembers();
+		~CoreMembers();
 	};
 
 	class Application

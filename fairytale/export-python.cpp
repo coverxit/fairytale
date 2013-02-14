@@ -17,22 +17,12 @@
 #include "engine-pch.h"
 #include "engine-application.h"
 #include "engine-input.h"
-#include "util-file.h"
-
-#include <btBulletDynamicsCommon.h>
 
 using namespace fairytale;
 using namespace boost::python;
 
 typedef void (*void_func_ptr_Application_const_ref_str)(Application*, const std::string&);
 typedef void (*void_func_void)(void);
-
-namespace fairytale
-{
-	class TestModule {};
-}
-
-void doBulletTest();
 
 BOOST_PYTHON_MODULE(fairytale)
 {
@@ -44,10 +34,6 @@ BOOST_PYTHON_MODULE(fairytale)
 		.def("addResourceLocation",				&Application::addResourceLocation)
 		.def("loadPlugin",						&Application::loadPlugin)
 		.def("loadPluginsFromDirectory",		&Application::loadPluginsFromDirectory)
-		;
-
-	class_<TestModule>("Test")
-		.def("bulletTest",						&doBulletTest)
 		;
 }
 

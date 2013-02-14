@@ -20,61 +20,52 @@
 #include "engine-pch.h"
 #include "util-singleton.h"
 
-#include <deque>
-
 namespace fairytale
 {
-	class KeyListenerManager : public Singleton<KeyListenerManager>, OIS::KeyListener
+	class KeyListenerManager : public Singleton<KeyListenerManager>, public OIS::KeyListener
 	{
 	public:
-		enum OpreateType
+		enum KeyState
 		{
-			KEY_UP = 0,
-			KEY_DOWN = 1
+			UP,
+			DOWN,
+			BOTH
 		};
 
-		typedef boost::function<void(const OIS::KeyEvent&)> KeyListener;
+		typedef boost::function<void(const OIS::KeyEvent&)> KeyHandler;
 
-		void registerListener(OpreateType type, OIS::KeyCode key, const KeyListener& listener);
+		void bindKey(OIS::KeyCode keycode, KeyState state, const KeyHandler& action);
+		void unbindKey(OIS::KeyCode keycode, KeyState state);
+
+		void registerListener(const std::string& name, boost::shared_ptr<OIS::KeyListener> listener);
+		void unregisterListener(const std::string& name);
 
 		bool keyPressed(const OIS::KeyEvent& evt);
 		bool keyReleased(const OIS::KeyEvent& evt);
 
 	private:
-		typedef std::deque<KeyListener> ListenerSet;
-		typedef std::unordered_map<OIS::KeyCode, ListenerSet> ListenerMap;
-
-		ListenerMap _uplisteners;
-		ListenerMap _downlisteners;
+		typedef std::unordered_map<OIS::KeyCode, KeyHandler> KeyActionMap;
+		typedef std::unordered_map<std::string, boost::shared_ptr<OIS::KeyListener>> ListenerMap;
+		
+		ListenerMap _general;
+		KeyActionMap _pressbinds;
+		KeyActionMap _releasebinds;
 	};
 
-	class MouseListenerManager : public Singleton<MouseListenerManager>, OIS::MouseListener
+	class MouseListenerManager : public Singleton<MouseListenerManager>, public OIS::MouseListener
 	{
 	public:
-		enum OpreateType
-		{
-			MOUSE_UP = 0,
-			MOUSE_DOWN = 1
-		};
-
-		typedef boost::function<void(const OIS::MouseEvent&)> MouseMoveListener;
-		typedef boost::function<void(const OIS::MouseEvent&, OIS::MouseButtonID)> MouseClickListener;
-
-		void registerMoveListener(const MouseMoveListener& listener);
-		void registerClickListener(OpreateType type, OIS::MouseButtonID btn, const MouseClickListener& listener);
+		void registerListener(const std::string& name, boost::shared_ptr<OIS::MouseListener> listener);
+		void unregisterListener(const std::string& name);
 
 		bool mouseMoved(const OIS::MouseEvent& evt);
 		bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
 		bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id);
 
 	private:
-		typedef std::deque<MouseMoveListener> MoveListenerSet;
-		typedef std::deque<MouseClickListener> ClickListenerSet;
-		typedef std::unordered_map<OIS::MouseButtonID, ClickListenerSet> ClickListenerMap;
+		typedef std::unordered_map<std::string, boost::shared_ptr<OIS::MouseListener>> ListenerMap;
 		
-		MoveListenerSet _movelisteners;
-		ClickListenerMap _uplisteners;
-		ClickListenerMap _downlisteners;
+		ListenerMap _general;
 	};
 }
 

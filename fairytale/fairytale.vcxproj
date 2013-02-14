@@ -99,8 +99,12 @@
     </ClCompile>
     <ClCompile Include="bullet.cpp" />
     <ClCompile Include="util-file.cpp" />
+    <ClCompile Include="util-identifier.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="debug-cameraman.h" />
     <ClInclude Include="engine-application.h" />
     <ClInclude Include="engine-export.h" />
     <ClInclude Include="engine-input.h" />
@@ -110,6 +114,7 @@
     <ClInclude Include="game-env.h" />
     <ClInclude Include="game-terrain.h" />
     <ClInclude Include="util-file.h" />
+    <ClInclude Include="util-identifier.h" />
     <ClInclude Include="util-procedure.h" />
     <ClInclude Include="util-singleton.h" />
   </ItemGroup>

@@ -4,9 +4,6 @@
     <Filter Include="engine">
       <UniqueIdentifier>{e3c1c255-999b-4e0a-b274-a8214f57943c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="export">
-      <UniqueIdentifier>{5d4f353f-7bbd-4788-8a19-18f8bbb48b71}</UniqueIdentifier>
-    </Filter>
     <Filter Include="util">
       <UniqueIdentifier>{6b153a09-8ab8-428a-8e85-db2a69581513}</UniqueIdentifier>
     </Filter>
@@ -21,6 +18,12 @@
     </Filter>
     <Filter Include="debugger">
       <UniqueIdentifier>{69ac4f10-279b-4c55-a719-f27f3d60a9b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="export">
+      <UniqueIdentifier>{5d4f353f-7bbd-4788-8a19-18f8bbb48b71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="game\vehicle">
+      <UniqueIdentifier>{a58d1508-5905-49aa-aa66-47cdb1f84f1b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -53,6 +56,9 @@
     </ClCompile>
     <ClCompile Include="engine-linking.cpp">
       <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="util-identifier.cpp">
+      <Filter>util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +94,12 @@
     </ClInclude>
     <ClInclude Include="game-terrain.h">
       <Filter>game\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="util-identifier.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="debug-cameraman.h">
+      <Filter>debugger</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

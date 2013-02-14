@@ -41,6 +41,6 @@ namespace fairytale
 	};
 }
 
-#define LOCK_AND_GET_INSTANCE_PTR(typename, ptrname) boost::mutex::scoped_try_lock __##typename_temp_lock(typename::getInstancePtr()->_mutex); typename* ptrname = typename::getInstancePtr();
+#define LOCK_AND_GET_INSTANCE_PTR(typename, ptrname) boost::mutex::scoped_try_lock __##typename_lock_##ptrname(typename::getInstancePtr()->_mutex); typename* ptrname = typename::getInstancePtr();
 
 #endif

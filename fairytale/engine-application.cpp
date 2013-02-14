@@ -17,11 +17,8 @@
 #include "engine-pch.h"
 #include "engine-application.h"
 #include "engine-input.h"
-#include <Ogre/Overlay/OgreOverlaySystem.h>
-#include "game-env-test.h"
 #include "util-file.h"
 #include "util-procedure.h"
-#include <boost/foreach.hpp>
 
 namespace fairytale
 {
@@ -42,6 +39,35 @@ namespace fairytale
 			return true;
 		}
 	};
+
+	CoreMembers::CoreMembers()
+	{
+		renderWnd		= 0;
+		defaultViewport	= 0;
+		defaultLog		= 0;
+		defaultCam		= 0;
+		defaultSceneMgr	= 0;
+
+		inputMgr		= 0;
+		keyboard		= 0;
+		mouse			= 0;
+
+		_inited			= false;
+		_shutdown		= false;
+	}
+
+	CoreMembers::~CoreMembers()
+	{
+		dbgDraw.reset();
+		phyWorld.reset();
+
+		solver.reset();
+		dispatcher.reset();
+		collisionConfig.reset();
+		broadPhase.reset();
+
+		ogreRoot.reset();
+	}
 
 	void Application::initOgre(const Ogre::String& logFile, const Ogre::String& configFile)
 	{
@@ -161,11 +187,16 @@ namespace fairytale
 			core->phyWorld->setGravity(btVector3(0,-9.8,0));
 
 			core->ogreRoot->addFrameListener(new BulletFrameListener());
+		}
 
-			KeyListenerManager::getInstance().registerListener(KeyListenerManager::KEY_DOWN, OIS::KC_SYSRQ, [this, &core](const OIS::KeyEvent&) {
-				core->renderWnd->writeContentsToTimestampedFile("./screenshots/fairytale_screenshot_", ".png");
+		{
+			LOCK_AND_GET_INSTANCE_PTR(KeyListenerManager, keymgr);
+
+			keymgr->bindKey(OIS::KC_SYSRQ, KeyListenerManager::DOWN, [](const OIS::KeyEvent&) {
+				LOCK_AND_GET_INSTANCE_PTR(CoreMembers, _core);
+				_core->renderWnd->writeContentsToTimestampedFile("./screenshots/fairytale_screenshot_", ".png");
 			});
-			KeyListenerManager::getInstance().registerListener(KeyListenerManager::KEY_DOWN, OIS::KC_ESCAPE, [this](const OIS::KeyEvent&) {
+			keymgr->bindKey(OIS::KC_ESCAPE, KeyListenerManager::DOWN, [this](const OIS::KeyEvent&) {
 				shutdown();
 			});
 		}
