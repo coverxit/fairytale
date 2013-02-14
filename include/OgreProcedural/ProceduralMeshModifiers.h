@@ -80,26 +80,97 @@ public:
 };
 
 //--------------------------------------------------------------
-/* TODO
-
+/**
+WIP
+*/
  class _ProceduralExport CalculateNormalsModifier
  {
  public:
- enum NormalComputeMode
- {
- NCM_VERTEX, NCM_TRIANGLE
+	 CalculateNormalsModifier() : mComputeMode(NCM_VERTEX), mInputTriangleBuffer(0), mMustWeldUnweldFirst(true) {}
+
+	enum NormalComputeMode
+	{
+		NCM_VERTEX, NCM_TRIANGLE
+	};
+
+	NormalComputeMode mComputeMode;
+	TriangleBuffer* mInputTriangleBuffer;
+	bool mMustWeldUnweldFirst;
+
+	CalculateNormalsModifier& setComputeMode(NormalComputeMode computeMode)
+	{
+		mComputeMode = computeMode;
+		return *this;
+	}
+
+	CalculateNormalsModifier& setInputTriangleBuffer(TriangleBuffer* inputTriangleBuffer)
+	{
+		mInputTriangleBuffer = inputTriangleBuffer;
+		return *this;
+	}
+
+	/**
+	 * Tells if the mesh must be first weld (NCM_VERTEX mode) or unweld (NCM_TRIANGLE) before computing normals.
+	 * Has a performance impact if enabled.
+	 * Default : true.
+	 */
+	CalculateNormalsModifier& setMustWeldUnweldFirst(bool mustWeldUnweldFirst)
+	{
+		mMustWeldUnweldFirst = mustWeldUnweldFirst;
+		return *this;
+	}
+
+	void modify();
  };
-
- NormalComputeMode mComputeMode;
-
- CalculateNormalsModifier& setComputeMode(NormalComputeMode computeMode)
+ //--------------------------------------------------------------
+ /**
+  * Welds together the vertices which are 'close enough' one to each other
+  */
+ class _ProceduralExport WeldVerticesModifier
  {
- mComputeMode = computeMode;
- return *this;
- }
+ public:
+	 WeldVerticesModifier() : mInputTriangleBuffer(0), mTolerance(1e-3f) {}
 
- void modify();
- };*/
+	 TriangleBuffer* mInputTriangleBuffer;
+	 Ogre::Real mTolerance;
+
+
+	 /// The triangle buffer to modify
+	WeldVerticesModifier& setInputTriangleBuffer(TriangleBuffer* inputTriangleBuffer)
+	{
+		mInputTriangleBuffer = inputTriangleBuffer;
+		return *this;
+	}
+
+	/// The tolerance in position to consider that 2 vertices are the same (default = 1e-3)
+	WeldVerticesModifier& setTolerance(Ogre::Real tolerance)
+	{
+		mTolerance = tolerance;
+		return *this;
+	}
+
+	 void modify();
+ };
+  //--------------------------------------------------------------
+ /**
+  * \brief Switches the triangle buffer from indexed triangles to (pseudo) triangle list
+  * It can be used if you want discontinuities between all your triangles.
+ */
+ class _ProceduralExport UnweldVerticesModifier
+ {
+ public:
+	 UnweldVerticesModifier() : mInputTriangleBuffer(0) {}
+
+	TriangleBuffer* mInputTriangleBuffer;
+
+	UnweldVerticesModifier& setInputTriangleBuffer(TriangleBuffer* inputTriangleBuffer)
+	{
+		mInputTriangleBuffer = inputTriangleBuffer;
+		return *this;
+	}
+	
+	 void modify();
+ };
 //--------------------------------------------------------------
 /**
  * \brief Recomputes the mesh's UVs based on its projection on a plane
@@ -235,7 +306,7 @@ class _ProceduralExport BoxUVModifier
 public:
 	enum MappingType
 	{
-		MT_FULL, MT_CROSS, MT_PACKED
+		MT_FULL, MT_CROSS, MT_PACKED,
 	};
 private:
 	TriangleBuffer* mInputTriangleBuffer;

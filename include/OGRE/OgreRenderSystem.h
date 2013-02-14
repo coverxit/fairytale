@@ -4,7 +4,7 @@ This source file is part of OGRE
 (Object-oriented Graphics Rendering Engine)
 For the latest info, see http://www.ogre3d.org
 
-Copyright (c) 2000-2012 Torus Knot Software Ltd
+Copyright (c) 2000-2013 Torus Knot Software Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1221,7 +1221,7 @@ namespace Ogre
 
         /** Returns the default material scheme used by the render system.
             Systems that use the RTSS to emulate a fixed function pipeline 
-            (e.g. OpenGL ES 2, DX11) need to override this function to return
+            (e.g. OpenGL ES 2, GL3+, DX11) need to override this function to return
             the default material scheme of the RTSS ShaderGenerator.
          
             This is currently only used to set the default material scheme for
@@ -1255,6 +1255,13 @@ namespace Ogre
 
 		/** Returns whether or not a Gpu program of the given type is currently bound. */
 		virtual bool isGpuProgramBound(GpuProgramType gptype);
+
+        /**
+         * Gets the native shading language version for this render system.
+         * Formatted so that it can be used within a shading program. 
+         * For example, OpenGL 3.2 would return 150, while 3.3 would return 330
+         */
+        uint16 getNativeShadingLanguageVersion() const { return mNativeShadingLanguageVersion; }
 
 		/** Sets the user clipping region.
 		*/
@@ -1614,6 +1621,7 @@ namespace Ogre
 
 
 		DriverVersion mDriverVersion;
+        uint16 mNativeShadingLanguageVersion;
 
 		bool mTexProjRelative;
 		Vector3 mTexProjRelativeOrigin;

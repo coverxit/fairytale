@@ -4,7 +4,7 @@ This source file is part of OGRE
     (Object-oriented Graphics Rendering Engine)
 For the latest info, see http://www.ogre3d.org/
 
-Copyright (c) 2000-2012 Torus Knot Software Ltd
+Copyright (c) 2000-2013 Torus Knot Software Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,7 @@ namespace Ogre {
     */
 
     struct MeshLodUsage;
+    struct LodConfig;
     class LodStrategy;
 
     /** Resource holding data about 3D mesh.
@@ -601,6 +602,8 @@ namespace Ogre {
 			successfull merges.
         */
 		void mergeAdjacentTexcoords( unsigned short finalTexCoordSet, unsigned short texCoordSetToDestroy );
+
+		void _configureMeshLodUsage(const LodConfig& lodConfig);
 
         /** This method builds a set of tangent vectors for a given mesh into a 3D texture coordinate buffer.
         @remarks

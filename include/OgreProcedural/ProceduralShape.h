@@ -209,6 +209,12 @@ public:
 		return Utils::cap(i,0,mPoints.size()-1);
 	}
 
+	/// Gets number of points in current point list
+	inline const std::vector<Ogre::Vector2>::size_type getPointCount() const
+	{
+		return mPoints.size();
+	}
+
 	/**
 	 * Makes the shape a closed shape, ie it will automatically connect 
 	 * the last point to the first point.
@@ -315,12 +321,12 @@ public:
 	 * Outputs a mesh representing the shape.
 	 * Mostly for debugging purposes
 	 */
-	Ogre::MeshPtr realizeMesh(const std::string& name="");
+	Ogre::MeshPtr realizeMesh(const std::string& name="") const;
 	
 	/**
 	 * Appends the shape vertices to a manual object being edited
 	 */
-	void _appendToManualObject(Ogre::ManualObject* manual);
+	void _appendToManualObject(Ogre::ManualObject* manual) const;
 
 	/**
 	 * Tells whether a point is inside a shape or not
@@ -516,7 +522,7 @@ public:
 	/**
 	 * Create a symetric copy at a given axis.
 	 * @param axis Axis where to mirror
-	 * @parm flip \c true if function should start mirroring with the first point in list (default \c false)
+	 * @param flip \c true if function should start mirroring with the first point in list (default \c false)
 	 */
 	Shape& mirrorAroundAxis(const Ogre::Vector2& axis, bool flip = false)
 	{
