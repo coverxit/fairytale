@@ -22,9 +22,6 @@
     <Filter Include="export">
       <UniqueIdentifier>{5d4f353f-7bbd-4788-8a19-18f8bbb48b71}</UniqueIdentifier>
     </Filter>
-    <Filter Include="game\vehicle">
-      <UniqueIdentifier>{a58d1508-5905-49aa-aa66-47cdb1f84f1b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="engine-pch.cpp">

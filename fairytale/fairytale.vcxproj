@@ -53,7 +53,7 @@
       <AdditionalOptions>/Zm300 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>engine-pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)include/bullet/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include/bullet/;$(SolutionDir)include/OGRE/Overlay/;$(SolutionDir)include/OGRE/;$(SolutionDir)include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -69,7 +69,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>engine-pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/Zm300 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)include/bullet/;$(SolutionDir)include/OGRE/;$(SolutionDir)include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include/bullet/;$(SolutionDir)include/OGRE/Overlay/;$(SolutionDir)include/OGRE/;$(SolutionDir)include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

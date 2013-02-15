@@ -19,9 +19,6 @@
 
 #include "engine-pch.h"
 #include "util-singleton.h"
-#include "BtOgrePG.h"
-#include "BtOgreGP.h"
-#include "BtOgreExtras.h"
 
 namespace fairytale
 {
@@ -32,8 +29,6 @@ namespace fairytale
 		Ogre::RenderWindow*						renderWnd;
 		Ogre::Viewport*							defaultViewport;
 		Ogre::Log*								defaultLog;
-		Ogre::Camera*							defaultCam;
-		Ogre::SceneManager*						defaultSceneMgr;
 
 		OIS::InputManager*						inputMgr;
 		OIS::Keyboard*							keyboard;

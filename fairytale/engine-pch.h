@@ -21,6 +21,10 @@
 #include <OIS.h>
 #include <Ogre/Overlay/OgreOverlaySystem.h>
 
+#include "BtOgrePG.h"
+#include "BtOgreGP.h"
+#include "BtOgreExtras.h"
+
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/python.hpp>

@@ -45,8 +45,6 @@ namespace fairytale
 		renderWnd		= 0;
 		defaultViewport	= 0;
 		defaultLog		= 0;
-		defaultCam		= 0;
-		defaultSceneMgr	= 0;
 
 		inputMgr		= 0;
 		keyboard		= 0;
@@ -65,6 +63,10 @@ namespace fairytale
 		dispatcher.reset();
 		collisionConfig.reset();
 		broadPhase.reset();
+
+		if(mouse) inputMgr->destroyInputObject(mouse);
+		if(keyboard) inputMgr->destroyInputObject(keyboard);
+		if(inputMgr) OIS::InputManager::destroyInputSystem(inputMgr);
 
 		ogreRoot.reset();
 	}
@@ -173,10 +175,6 @@ namespace fairytale
 		{
 			LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
 
-			core->defaultSceneMgr = core->ogreRoot->createSceneManager(Ogre::ST_GENERIC, "__fairytale_default_scenemanager");
-			core->defaultCam = core->defaultSceneMgr->createCamera("__fairytale_default_camera");
-			core->defaultViewport->setCamera(core->defaultCam);
-
 			//Bullet initialisation.
 			core->broadPhase.reset(new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024));
 			core->collisionConfig.reset(new btDefaultCollisionConfiguration());
@@ -249,7 +247,6 @@ namespace fairytale
 			}
 		}
 
-		if(coreptr->inputMgr) OIS::InputManager::destroyInputSystem(coreptr->inputMgr);
 		coreptr->defaultLog->logMessage("Main loop quit");
 	}
 
