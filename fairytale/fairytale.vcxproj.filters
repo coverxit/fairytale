@@ -33,9 +33,6 @@
     <ClCompile Include="engine-application.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="export-python.cpp">
-      <Filter>export</Filter>
-    </ClCompile>
     <ClCompile Include="engine-input.cpp">
       <Filter>engine</Filter>
     </ClCompile>
@@ -56,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="util-identifier.cpp">
       <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="export-squirrel.cpp">
+      <Filter>export</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

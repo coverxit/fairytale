@@ -58,9 +58,9 @@ namespace fairytale
 	class Application
 	{
 	public:
-		void initOgre(const Ogre::String& logFile, const Ogre::String& configFile);
+		void initOgre(const std::string& logFile, const std::string& configFile);
 		bool showConfigDialog();
-		void initWindow(const Ogre::String& wndtitle);
+		void initWindow(const std::string& wndtitle);
 		void startLoop();
 		void shutdown();
 

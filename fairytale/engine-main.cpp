@@ -18,34 +18,58 @@
 
 #include "engine-application.h"
 
-// declared in "export-python.cpp"
-extern "C" PyObject* PyInit_fairytale();
-extern "C" PyObject* PyInit_OIS();
+// declared in "export-squirrel.cpp"
+extern void BindSquirrel(HSQUIRRELVM vm);
 
 using namespace std;
 using namespace fairytale;
+using namespace Sqrat;
+
+void printFunc(HSQUIRRELVM v,const SQChar * s,...)
+{
+	SQChar temp[2048];
+	va_list vl;
+	va_start(vl,s);
+	scvsprintf(temp,s,vl);
+	va_end(vl);
+
+	CoreMembers::getInstancePtr()->defaultLog->logMessage(temp);
+}
 
 int main()
 {
+	HSQUIRRELVM vm = sq_open(1024);
+	sq_setprintfunc(vm, printFunc, printFunc);
+	sq_seterrorhandler(vm);
+	DefaultVM::Set(vm);
+
 	try
 	{
-		PyImport_AppendInittab("fairytale",	PyInit_fairytale);
-		PyImport_AppendInittab("OIS",		PyInit_OIS);
-		Py_Initialize();
-		boost::python::import("scripts.beforeStartingMainLoop");
+		BindSquirrel(vm);
+		Script tmp;
+		tmp.CompileFile("scripts/beforeStartingMainLoop.nut");
+		tmp.Run();
 		Application().startLoop();
-		Py_Finalize();
 	}
 	catch(Ogre::Exception& e)
 	{
 		std::cout << e.what() << std::endl;
-		throw;
 	}
-	catch(boost::python::error_already_set)
+	catch(Exception& e)
 	{
-		if(PyErr_Occurred())
-			PyErr_Print();
-		throw;
+		std::cout << e.Message() << std::endl;
 	}
+	catch(std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	catch(...)
+	{
+	}
+
+	sq_close(vm);
+	// Windows only...
+	system("pause");
+
 	return 0;
 }

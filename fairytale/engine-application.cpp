@@ -225,14 +225,15 @@ namespace fairytale
 				{
 					try
 					{
-						PyRun_SimpleString(coreptr->_commands.front().c_str());
-						std::cout << ">>> ";
+						Sqrat::Script script;
+						script.CompileString(coreptr->_commands.front());
+						script.Run();
 					}
-					catch(...)
+					catch(Sqrat::Exception& e)
 					{
-						if(PyErr_Occurred())
-							PyErr_Print();
+						std::cout << e.Message() << std::endl;
 					}
+					std::cout << ">>> ";
 					coreptr->_commands.pop_front();
 				}
 			}
@@ -256,18 +257,10 @@ namespace fairytale
 		std::cout << "Console is now available!\n>>> ";
 		while(!CoreMembers::getInstancePtr()->_shutdown)
 		{
-			try
-			{
-				std::getline(std::cin, cmd);
-				CoreMembers* coreptr = CoreMembers::getInstancePtr();
-				boost::mutex::scoped_lock lock(coreptr->_commandsDequeMutex);
-				coreptr->_commands.push_back(cmd);
-			}
-			catch(...)
-			{
-				if(PyErr_Occurred())
-					PyErr_Print();
-			}
+			std::getline(std::cin, cmd);
+			CoreMembers* coreptr = CoreMembers::getInstancePtr();
+			boost::mutex::scoped_lock lock(coreptr->_commandsDequeMutex);
+			coreptr->_commands.push_back(cmd);
 			std::cin.clear();
 			fflush(stdin);
 		}
