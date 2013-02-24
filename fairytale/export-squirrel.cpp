@@ -16,6 +16,7 @@
 
 #include "engine-pch.h"
 #include "engine-application.h"
+#include "game-terrain.h"
 
 using namespace fairytale;
 using namespace Sqrat;
@@ -35,5 +36,6 @@ void BindSquirrel(SQVM* vm)
 		.Func("loadPluginsFromDirectory",		&Application::loadPluginsFromDirectory)
 		);
 
-
+	RootTable(vm).Bind("vtt", Class<VolumeTerrainTest>()
+		);
 }

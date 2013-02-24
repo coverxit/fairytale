@@ -37,6 +37,7 @@ boost::shared_ptr<fairytale::DebugCameraMan> debugCameraMan;
  *  Description:  Derives from ExampleApplication and overrides stuff.
  * =====================================================================================
  */
+SceneManager* mSceneMgr;
 
 class BtOgreTestApplication
 {
@@ -53,7 +54,7 @@ class BtOgreTestApplication
 	btBvhTriangleMeshShape *mGroundShape;
 
 	Camera* mCamera;
-	SceneManager* mSceneMgr;
+	
 
     public:
 	BtOgreTestApplication()
@@ -72,7 +73,7 @@ class BtOgreTestApplication
 		CoreMembers::getInstancePtr()->defaultViewport->setCamera(mCamera);
 
 		debugCameraMan.reset(new DebugCameraMan(mCamera));
-		debugCameraMan->setTopSpeed(5);
+		debugCameraMan->setTopSpeed(100);
 
 		{
 			LOCK_AND_GET_INSTANCE_PTR(KeyListenerManager, Keyboard);

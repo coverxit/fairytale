@@ -28,7 +28,6 @@ namespace fairytale
 		boost::scoped_ptr<Ogre::Root>			ogreRoot;
 		Ogre::RenderWindow*						renderWnd;
 		Ogre::Viewport*							defaultViewport;
-		Ogre::Log*								defaultLog;
 
 		OIS::InputManager*						inputMgr;
 		OIS::Keyboard*							keyboard;
@@ -49,6 +48,8 @@ namespace fairytale
 		boost::mutex							_commandsDequeMutex;
 		bool									_inited;
 		bool									_shutdown;
+
+		Ogre::Log*								_defaultLog;
 
 	public:
 		CoreMembers();

@@ -44,7 +44,6 @@ namespace fairytale
 	{
 		renderWnd		= 0;
 		defaultViewport	= 0;
-		defaultLog		= 0;
 
 		inputMgr		= 0;
 		keyboard		= 0;
@@ -52,6 +51,8 @@ namespace fairytale
 
 		_inited			= false;
 		_shutdown		= false;
+
+		_defaultLog		= 0;
 	}
 
 	CoreMembers::~CoreMembers()
@@ -80,10 +81,11 @@ namespace fairytale
 		// Init these f*cking singleton classes...
 		new Ogre::LogManager();
 
-		core->defaultLog = Ogre::LogManager::getSingleton().createLog(logFile, true);
-		core->defaultLog->setLogDetail(Ogre::LoggingLevel::LL_BOREME);
-		core->defaultLog->setTimeStampEnabled(true);
-	
+		core->_defaultLog = Ogre::LogManager::getSingleton().createLog(logFile, true);
+		core->_defaultLog->setLogDetail(Ogre::LoggingLevel::LL_BOREME);
+		core->_defaultLog->setTimeStampEnabled(true);
+		Ogre::LogManager::getSingleton().setDefaultLog(core->_defaultLog);
+
 		core->ogreRoot.reset(new Ogre::Root(Ogre::StringUtil::BLANK, configFile, Ogre::StringUtil::BLANK));
 
 		new Ogre::OverlaySystem();
@@ -207,7 +209,7 @@ namespace fairytale
 		{
 			LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
 
-			core->defaultLog->logMessage("Main loop entered");
+			Ogre::LogManager::getSingleton().stream() << "Main loop entered";
 			core->_gameConsole.reset(new boost::thread(boost::bind(&Application::_waitForUserInput, this)));
 		}
 
@@ -248,7 +250,7 @@ namespace fairytale
 			}
 		}
 
-		coreptr->defaultLog->logMessage("Main loop quit");
+		Ogre::LogManager::getSingleton().stream() << "Main loop quit";
 	}
 
 	void Application::_waitForUserInput()

@@ -29,11 +29,11 @@ void printFunc(HSQUIRRELVM v,const SQChar * s,...)
 {
 	SQChar temp[2048];
 	va_list vl;
-	va_start(vl,s);
-	scvsprintf(temp,s,vl);
+	va_start(vl, s);
+	scvsprintf(temp, s, vl);
 	va_end(vl);
 
-	CoreMembers::getInstancePtr()->defaultLog->logMessage(temp);
+	Ogre::LogManager::getSingleton().stream() << temp;
 }
 
 int main()

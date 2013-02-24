@@ -45,9 +45,6 @@
     <ClCompile Include="util-file.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="bullet.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="engine-linking.cpp">
       <Filter>engine</Filter>
     </ClCompile>
@@ -56,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="export-squirrel.cpp">
       <Filter>export</Filter>
+    </ClCompile>
+    <ClCompile Include="bullet.cpp">
+      <Filter>game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
