@@ -22,6 +22,12 @@
     <Filter Include="export">
       <UniqueIdentifier>{5d4f353f-7bbd-4788-8a19-18f8bbb48b71}</UniqueIdentifier>
     </Filter>
+    <Filter Include="game\physics">
+      <UniqueIdentifier>{b646e49d-9f29-472e-a406-b6555e931936}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="game\scene">
+      <UniqueIdentifier>{488db9fa-fb98-4b69-a699-0c38e573d0c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="engine-pch.cpp">
@@ -56,6 +62,12 @@
     </ClCompile>
     <ClCompile Include="bullet.cpp">
       <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game-physics.cpp">
+      <Filter>game\physics</Filter>
+    </ClCompile>
+    <ClCompile Include="game-scene.cpp">
+      <Filter>game\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +109,12 @@
     </ClInclude>
     <ClInclude Include="debug-cameraman.h">
       <Filter>debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="game-scene.h">
+      <Filter>game\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="game-physics.h">
+      <Filter>game\physics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

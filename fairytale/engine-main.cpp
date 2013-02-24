@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 TennenColl
+ * Copyright 2012-2013 TennenColl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ int main()
 		Script tmp;
 		tmp.CompileFile("scripts/beforeStartingMainLoop.nut");
 		tmp.Run();
-		Application().startLoop();
+		Application::getInstance().startLoop();
 	}
 	catch(Ogre::Exception& e)
 	{

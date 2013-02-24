@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-#ifndef __FAIRYTALE_UTIL_FILE_H__
-#define __FAIRYTALE_UTIL_FILE_H__
+#ifndef __FAIRYTALE_GAME_PHYSICS_H__
+#define __FAIRYTALE_GAME_PHYSICS_H__
 
 #include "engine-pch.h"
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem.hpp>
+#include "util-singleton.h"
 
 namespace fairytale
 {
-	enum DirectoryProcessMode
+	class GamePhysics : public fairytale::Singleton<GamePhysics>
 	{
-		ONLY_FILE,
-		ONLY_DIRECTORY,
-		ALL
-	};
+	public:
+		btAxisSweep3* const							broadPhase;
+		btDefaultCollisionConfiguration* const		collisionConfig;
+		btCollisionDispatcher* const				dispatcher;
+		btSequentialImpulseConstraintSolver* const	solver;
+		btDynamicsWorld* const						phyWorld;
 
-	void processDirectory(const std::string& dir, boost::function<void(const std::string&)> action, DirectoryProcessMode mode, bool includesubdirs);
-	void processFilesInDirectory(const std::string& dir, boost::function<void(const std::string&)> action, bool includesubdirs, const std::string& filefilter = "");
-}
+		GamePhysics();
+		~GamePhysics();
+	};
+};
 
 #endif

@@ -93,11 +93,15 @@
     <ClCompile Include="game-env.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="game-physics.cpp" />
+    <ClCompile Include="game-scene.cpp" />
     <ClCompile Include="hydraxtest.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="bullet.cpp" />
+    <ClCompile Include="bullet.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="util-file.cpp" />
     <ClCompile Include="util-identifier.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -112,11 +116,13 @@
     <ClInclude Include="game-env-data.h" />
     <ClInclude Include="game-env-test.h" />
     <ClInclude Include="game-env.h" />
+    <ClInclude Include="game-scene.h" />
     <ClInclude Include="game-terrain.h" />
     <ClInclude Include="util-file.h" />
     <ClInclude Include="util-identifier.h" />
     <ClInclude Include="util-procedure.h" />
     <ClInclude Include="util-singleton.h" />
+    <ClInclude Include="game-physics.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

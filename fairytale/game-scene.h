@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-#ifndef __FAIRYTALE_UTIL_FILE_H__
-#define __FAIRYTALE_UTIL_FILE_H__
+#ifndef __FAIRYTALE_GAME_SCENE_H__
+#define __FAIRYTALE_GAME_SCENE_H__
 
 #include "engine-pch.h"
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem.hpp>
+#include "util-singleton.h"
+#include "debug-cameraman.h"
 
 namespace fairytale
 {
-	enum DirectoryProcessMode
+	class GameScene : public Singleton<GameScene>
 	{
-		ONLY_FILE,
-		ONLY_DIRECTORY,
-		ALL
-	};
+	public:
+		Ogre::SceneManager*									defaultSceneMgr;
+		Ogre::Camera*										defaultCamera;
+		boost::shared_ptr<DebugCameraMan>					debugCameraMan;
+		boost::scoped_ptr<DebugCameraManFrameListener>		debugCameraManFrameListener;
 
-	void processDirectory(const std::string& dir, boost::function<void(const std::string&)> action, DirectoryProcessMode mode, bool includesubdirs);
-	void processFilesInDirectory(const std::string& dir, boost::function<void(const std::string&)> action, bool includesubdirs, const std::string& filefilter = "");
+		GameScene();
+	};
 }
 
 #endif

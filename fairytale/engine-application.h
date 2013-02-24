@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 TennenColl
+ * Copyright 2012-2013 TennenColl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,56 +22,39 @@
 
 namespace fairytale
 {
-	class CoreMembers : public fairytale::Singleton<CoreMembers>
+	class Application : public Singleton<Application>
 	{
 	public:
-		boost::scoped_ptr<Ogre::Root>			ogreRoot;
-		Ogre::RenderWindow*						renderWnd;
-		Ogre::Viewport*							defaultViewport;
+		Application();
+		~Application();
 
-		OIS::InputManager*						inputMgr;
-		OIS::Keyboard*							keyboard;
-		OIS::Mouse*								mouse;
-
-		boost::scoped_ptr<btAxisSweep3>							broadPhase;
-		boost::scoped_ptr<btDefaultCollisionConfiguration>		collisionConfig;
-		boost::scoped_ptr<btCollisionDispatcher>				dispatcher;
-		boost::scoped_ptr<btSequentialImpulseConstraintSolver>	solver;
-		boost::scoped_ptr<btDynamicsWorld>						phyWorld;
-		boost::scoped_ptr<BtOgre::DebugDrawer>					dbgDraw;
-
-		friend class Application;
-
-	private:
-		ThreadPtr								_gameConsole;
-		std::deque<std::string>					_commands;
-		boost::mutex							_commandsDequeMutex;
-		bool									_inited;
-		bool									_shutdown;
-
-		Ogre::Log*								_defaultLog;
-
-	public:
-		CoreMembers();
-		~CoreMembers();
-	};
-
-	class Application
-	{
-	public:
-		void initOgre(const std::string& logFile, const std::string& configFile);
-		bool showConfigDialog();
-		void initWindow(const std::string& wndtitle);
 		void startLoop();
 		void shutdown();
 
 		void addResourceLocation(const std::string& dir);
-		void loadPlugin(const Ogre::String& filename);
+		void loadPlugin(const std::string& filename);
 		void loadPluginsFromDirectory(const std::string& dir);
+
+		void takeScreenshot();
 
 	private:
 		void _doMainLoop();
 		void _waitForUserInput();
+
+	public:
+		Ogre::Root* const				ogreRoot;
+		Ogre::RenderWindow* const		renderWnd;
+		Ogre::Viewport* const			defaultViewport;
+
+		OIS::InputManager* const		inputMgr;
+		OIS::Keyboard* const			keyboard;
+		OIS::Mouse* const				mouse;
+
+	private:
+		ThreadPtr						_gameConsole;
+		std::deque<std::string>			_commands;
+		boost::mutex					_commandsDequeMutex;
+		bool							_shutdown;
 	};
 };
 

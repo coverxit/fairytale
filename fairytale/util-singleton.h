@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 TennenColl
+ * Copyright 2012-2013 TennenColl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace fairytale
 {
 	template<class T>
 	// This implementation is NOT Thread-Safe. But here i have a mutex lock for you.
-	class Singleton : public boost::noncopyable
+	class Singleton : private boost::noncopyable
 	{
 	public:
 		static T& getInstance()

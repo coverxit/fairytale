@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 TennenColl
+ * Copyright 2012-2013 TennenColl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,34 @@
  */
 
 #include "engine-pch.h"
+
 #include "engine-application.h"
+#include "game-physics.h"
+#include "game-scene.h"
 #include "game-terrain.h"
 
 using namespace fairytale;
 using namespace Sqrat;
 
-typedef void (*void_func_ptr_Application_const_ref_str)(Application*, const std::string&);
+typedef void (*void_func_const_ref_str)(const std::string&);
 typedef void (*void_func_void)(void);
 
 void BindSquirrel(SQVM* vm)
 {
-	RootTable(vm).Bind("Application", Class<Application>()
-		.Func("initOgre",						&Application::initOgre)
-		.Func("showConfigDialog",				&Application::showConfigDialog)
-		.Func("initWindow",						&Application::initWindow)
-		.Func("shutdown",						&Application::shutdown)
-		.Func("addResourceLocation",			&Application::addResourceLocation)
-		.Func("loadPlugin",						&Application::loadPlugin)
-		.Func("loadPluginsFromDirectory",		&Application::loadPluginsFromDirectory)
+	RootTable(vm).Bind("Application", Table()
+		.Func("init",							(void_func_void)(&Application::getInstance))
+		.Func("addResourceLocation",			(void_func_const_ref_str)([](const std::string& str1) -> void { Application::getInstance().addResourceLocation(str1); }))
+		.Func("loadPlugin",						(void_func_const_ref_str)([](const std::string& str1) -> void { Application::getInstance().loadPlugin(str1); }))
+		.Func("loadPluginsFromDirectory",		(void_func_const_ref_str)([](const std::string& str1) -> void { Application::getInstance().loadPluginsFromDirectory(str1); }))
+		.Func("shutdown",						(void_func_void)([]() -> void { Application::getInstance().shutdown(); }))
+		);
+
+	RootTable(vm).Bind("Physics", Table()
+		.Func("init",							(void_func_void)(&GamePhysics::getInstance))
+		);
+
+	RootTable(vm).Bind("Scene", Table()
+		.Func("init",							(void_func_void)(&GameScene::getInstance))
 		);
 
 	RootTable(vm).Bind("vtt", Class<VolumeTerrainTest>()

@@ -29,7 +29,6 @@ using namespace fairytale;
  * =====================================================================================
  */
 
-boost::shared_ptr<fairytale::DebugCameraMan> debugCameraMan;
 
 /*
  * =====================================================================================
@@ -37,7 +36,6 @@ boost::shared_ptr<fairytale::DebugCameraMan> debugCameraMan;
  *  Description:  Derives from ExampleApplication and overrides stuff.
  * =====================================================================================
  */
-SceneManager* mSceneMgr;
 
 class BtOgreTestApplication
 {
@@ -53,44 +51,11 @@ class BtOgreTestApplication
 	btRigidBody *mGroundBody;
 	btBvhTriangleMeshShape *mGroundShape;
 
-	Camera* mCamera;
-	
-
     public:
 	BtOgreTestApplication()
 	{
-		mSceneMgr = CoreMembers::getInstancePtr()->ogreRoot->createSceneManager(ST_GENERIC, "ExampleSMInstance");
-		mCamera = mSceneMgr->createCamera("PlayerCam");
-		mCamera->setFarClipDistance(10000);
-		mCamera->setNearClipDistance(0.05);
-		//Some normal stuff.
-		mSceneMgr->setAmbientLight(ColourValue(0.7,0.7,0.7));
-		mCamera->setPosition(Vector3(10,10,10));
-		mCamera->lookAt(Vector3::ZERO);
-		mCamera->setAspectRatio(
-			Real(CoreMembers::getInstancePtr()->defaultViewport->getActualWidth()) / Real(CoreMembers::getInstancePtr()->defaultViewport->getActualHeight()));
 
-		CoreMembers::getInstancePtr()->defaultViewport->setCamera(mCamera);
-
-		debugCameraMan.reset(new DebugCameraMan(mCamera));
-		debugCameraMan->setTopSpeed(100);
-
-		{
-			LOCK_AND_GET_INSTANCE_PTR(KeyListenerManager, Keyboard);
-			Keyboard->registerListener("SDK_CAMERA_MAN", debugCameraMan);
-			LOCK_AND_GET_INSTANCE_PTR(MouseListenerManager, Mouse);
-			Mouse->registerListener("SDK_CAMERA_MAN", debugCameraMan);
-		}
-
-		LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
-		core->ogreRoot->addFrameListener(new DebugCameraManFrameListener(debugCameraMan));
-
-		//----------------------------------------------------------
-		// Debug drawing!
-		//----------------------------------------------------------
-
-		core->dbgDraw.reset(new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), core->phyWorld.get()));
-		core->phyWorld->setDebugDrawer(core->dbgDraw.get());
+	
 	}
 
 	~BtOgreTestApplication()
