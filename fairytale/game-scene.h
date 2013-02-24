@@ -24,7 +24,7 @@
 
 namespace fairytale
 {
-	class GameScene : public Singleton<GameScene>
+	class GameScene : public Singleton<GameScene>, public Ogre::WindowEventListener
 	{
 	public:
 		Ogre::SceneManager*									defaultSceneMgr;
@@ -33,6 +33,8 @@ namespace fairytale
 		boost::scoped_ptr<DebugCameraManFrameListener>		debugCameraManFrameListener;
 
 		GameScene();
+
+		void windowResized(Ogre::RenderWindow* rw);
 	};
 }
 

@@ -54,5 +54,16 @@ namespace fairytale
 
 		debugCameraManFrameListener.reset(new DebugCameraManFrameListener(debugCameraMan));
 		app->ogreRoot->addFrameListener(debugCameraManFrameListener.get());
+		Ogre::WindowEventUtilities::addWindowEventListener(app->renderWnd, this);
+	}
+
+	void GameScene::windowResized(Ogre::RenderWindow* rw)
+	{
+		LOCK_AND_GET_INSTANCE_PTR(Application, app);
+		boost::mutex::scoped_try_lock(_mutex);
+
+		app->mouse->getMouseState().height = app->renderWnd->getHeight();
+		app->mouse->getMouseState().width = app->renderWnd->getWidth();
+		defaultCamera->setAspectRatio(Real(app->defaultViewport->getActualWidth()) / Real(app->defaultViewport->getActualHeight()));
 	}
 }
