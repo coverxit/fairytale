@@ -28,93 +28,78 @@
     <Filter Include="game\scene">
       <UniqueIdentifier>{488db9fa-fb98-4b69-a699-0c38e573d0c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NewFilter1">
+      <UniqueIdentifier>{e0f99f2f-33c8-437a-b949-d212527ca817}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="engine-pch.cpp">
+    <ClCompile Include="engine\graphics.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="engine-main.cpp">
+    <ClCompile Include="engine\physics.cpp">
+      <Filter>game\physics</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\input.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="engine-application.cpp">
+    <ClCompile Include="pch.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="engine-input.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="game-env.cpp">
-      <Filter>game\env</Filter>
-    </ClCompile>
-    <ClCompile Include="hydraxtest.cpp">
-      <Filter>game\env</Filter>
-    </ClCompile>
-    <ClCompile Include="util-file.cpp">
+    <ClCompile Include="util\file.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="engine-linking.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="util-identifier.cpp">
-      <Filter>util</Filter>
+    <ClCompile Include="game\game-env.cpp">
+      <Filter>game\env</Filter>
     </ClCompile>
-    <ClCompile Include="export-squirrel.cpp">
+    <ClCompile Include="game\game-scene.cpp">
+      <Filter>game\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="export\squirrel.cpp">
       <Filter>export</Filter>
     </ClCompile>
-    <ClCompile Include="bullet.cpp">
+    <ClCompile Include="game\hydraxtest.cpp">
+      <Filter>game\env</Filter>
+    </ClCompile>
+    <ClCompile Include="game\bullet.cpp">
       <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="game-physics.cpp">
-      <Filter>game\physics</Filter>
-    </ClCompile>
-    <ClCompile Include="game-scene.cpp">
-      <Filter>game\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="engine-application.h">
+    <ClInclude Include="engine\graphics.h">
       <Filter>engine</Filter>
     </ClInclude>
-    <ClInclude Include="engine-pch.h">
+    <ClInclude Include="engine\physics.h">
+      <Filter>game\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\input.h">
       <Filter>engine</Filter>
     </ClInclude>
-    <ClInclude Include="game-env.h">
+    <ClInclude Include="pch.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="util\file.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="game\game-env-data.h">
       <Filter>game\env</Filter>
     </ClInclude>
-    <ClInclude Include="engine-input.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="util-singleton.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="game-env-test.h">
+    <ClInclude Include="game\game-env-test.h">
       <Filter>game\env</Filter>
     </ClInclude>
-    <ClInclude Include="engine-export.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="game-env-data.h">
+    <ClInclude Include="game\game-env.h">
       <Filter>game\env</Filter>
     </ClInclude>
-    <ClInclude Include="util-file.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="util-procedure.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="game-terrain.h">
-      <Filter>game\terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="util-identifier.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="debug-cameraman.h">
-      <Filter>debugger</Filter>
-    </ClInclude>
-    <ClInclude Include="game-scene.h">
+    <ClInclude Include="game\game-scene.h">
       <Filter>game\scene</Filter>
     </ClInclude>
-    <ClInclude Include="game-physics.h">
-      <Filter>game\physics</Filter>
+    <ClInclude Include="game\game-terrain.h">
+      <Filter>game\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="game\debug-cameraman.h">
+      <Filter>debugger</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
