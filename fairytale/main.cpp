@@ -16,130 +16,160 @@
 
 #include "pch.h"
 
-#include <sqrat.h>
+#include <boost/thread.hpp>
 
-#include "engine/graphics.h"
+#include "engine/engine.h"
 #include "engine/input.h"
-#include "engine/physics.h"
-
-// declared in "export-squirrel.cpp"
-extern void BindSquirrel(HSQUIRRELVM vm);
+#include "engine/graphics.h"
 
 using namespace std;
 using namespace fairytale;
-using namespace Sqrat;
+using namespace chaiscript;
+using namespace Ogre;
 
-void printFunc(HSQUIRRELVM v,const SQChar * s,...)
-{
-	SQChar temp[2048];
-	va_list vl;
-	va_start(vl, s);
-	scvsprintf(temp, s, vl);
-	va_end(vl);
-
-	Ogre::LogManager::getSingleton().stream() << temp;
-}
-
-boost::scoped_ptr<boost::thread>	gameConsole;
-std::deque<std::string>				commands;
-boost::mutex						commandsDequeMutex;
+boost::scoped_ptr<engine::Engine> gameEngine(new engine::Engine);
+boost::scoped_ptr<boost::thread> inputThread;
 
 void waitForUserInput()
 {
 	std::string cmd;
 	std::cout << "Console is now available!\n>>> ";
-	while(!engine::graphics::renderingStopped())
+	while(true)
 	{
 		std::getline(std::cin, cmd);
-		boost::mutex::scoped_lock(commandsDequeMutex);
-		commands.push_back(cmd);
+		gameEngine->appendScriptCommand(cmd);
 		std::cin.clear();
 		fflush(stdin);
 	}
 }
 
-void doMainLoop()
+void registerScript(chaiscript::ChaiScript* script)
 {
-	Ogre::LogManager::getSingleton().stream() << "Main loop entered";
+	(*script)
+		.add(fun(boost::function<void()>(boost::bind(&engine::Engine::stop, gameEngine.get()))), "exit")
+		.add(fun(boost::function<void()>(boost::bind(&engine::GraphicManager::takeScreenshot, gameEngine->getGraphicManager()))), "takeScreenshot")
+		;
+}
 
-	gameConsole.reset(new boost::thread(waitForUserInput));
 
-	while(!engine::graphics::renderingStopped() && !engine::graphics::getDefaultRenderWindow()->isClosed())
+//-------------------------------------------------------------------------
+
+#include "game/debug-cameraman.h"
+
+namespace fairytale
+{
+	class GameScene : public Ogre::WindowEventListener
 	{
-		// process commands
-		{
-			boost::mutex::scoped_lock(commandsDequeMutex);
-			while(!commands.empty())
-			{
-				try
-				{
-					Sqrat::Script script;
-					script.CompileString(commands.front());
-					script.Run();
-				}
-				catch(Sqrat::Exception& e)
-				{
-					std::cout << e.Message() << std::endl;
-				}
-				std::cout << ">>> ";
-				commands.pop_front();
-			}
-		}
+	public:
+		Ogre::SceneManager*									defaultSceneMgr;
+		Ogre::Camera*										defaultCamera;
+		boost::shared_ptr<DebugCameraMan>					debugCameraMan;
+		boost::scoped_ptr<DebugCameraManFrameListener>		debugCameraManFrameListener;
 
-		{
-			Ogre::WindowEventUtilities::messagePump();
+		GameScene();
 
-			engine::input::getKeyboard()->capture();
-			engine::input::getMouse()->capture();
+		void windowResized(Ogre::RenderWindow* rw);
+	};
+}
 
-			engine::graphics::getOGRE()->renderOneFrame();
-		}
+namespace fairytale
+{
+	GameScene::GameScene()
+	{
+		defaultSceneMgr = gameEngine->getGraphicManager()->getOgreRoot()->createSceneManager(Ogre::ST_GENERIC, "_default_scenemgr");
+		defaultSceneMgr->setAmbientLight(ColourValue(0.7,0.7,0.7));
+		defaultCamera = defaultSceneMgr->createCamera("PlayerCam");
+		defaultCamera->setFarClipDistance(10000);
+		defaultCamera->setNearClipDistance(0.05);
+		defaultCamera->setPosition(Vector3(10,10,10));
+		defaultCamera->lookAt(Vector3::ZERO);
+		defaultCamera->setAspectRatio(gameEngine->getGraphicManager()->getViewportAspectRatio());
+
+		gameEngine->getGraphicManager()->setCamera(defaultCamera);
+
+		debugCameraMan.reset(new DebugCameraMan(defaultCamera));
+		debugCameraMan->setTopSpeed(100);
+
+		gameEngine->getInputManager()->registerKeyListener(debugCameraMan);
+		gameEngine->getInputManager()->registerMouseListener(debugCameraMan);
+
+		debugCameraManFrameListener.reset(new DebugCameraManFrameListener(debugCameraMan));
+		gameEngine->getGraphicManager()->addFrameListener(debugCameraManFrameListener.get());
+		gameEngine->getGraphicManager()->addWindowEventListener(this);
 	}
 
-	Ogre::LogManager::getSingleton().stream() << "Main loop quit";
+	void GameScene::windowResized(Ogre::RenderWindow* rw)
+	{
+		defaultCamera->setAspectRatio(gameEngine->getGraphicManager()->getViewportAspectRatio());
+	}
 }
+
+#include <Volume/OgreVolumeChunk.h>
+#include <Volume/OgreVolumeCSGSource.h>
+#include <Volume/OgreVolumeCacheSource.h>
+#include <Volume/OgreVolumeTextureSource.h>
+#include <Volume/OgreVolumeMeshBuilder.h>
+#include <Volume/OgreVolumeSimplexNoise.h>
+
+using namespace Ogre;
+using namespace Ogre::Volume;
+
+namespace fairytale
+{
+	class VolumeTerrainTest
+	{
+	public:
+		boost::shared_ptr<Chunk> mVolumeRoot;
+		boost::shared_ptr<GameScene> scene;
+		VolumeTerrainTest()
+		{
+			scene.reset(new GameScene());
+
+			// Skydome
+			scene->defaultSceneMgr->setSkyDome(true, "Examples/CloudySky", 5, 8);
+
+			// Light
+			Light* directionalLight0 = scene->defaultSceneMgr->createLight("directionalLight0");
+			directionalLight0->setType(Light::LT_DIRECTIONAL);
+			directionalLight0->setDirection(Vector3((Real)1, (Real)-1, (Real)1));
+			directionalLight0->setDiffuseColour((Real)1, (Real)0.98, (Real)0.73);
+			directionalLight0->setSpecularColour((Real)0.1, (Real)0.1, (Real)0.1);
+
+			// Volume
+			mVolumeRoot.reset(new Chunk());
+			SceneNode *volumeRootNode = scene->defaultSceneMgr->getRootSceneNode()->createChildSceneNode("VolumeParent");
+			mVolumeRoot->load(volumeRootNode, scene->defaultSceneMgr, "volumeTerrain.cfg");
+
+			scene->defaultCamera->setPosition((Real)(2560 - 384), (Real)2000, (Real)(2560 - 384));
+			scene->defaultCamera->lookAt((Real)0, (Real)100, (Real)0);
+		}
+	};
+}
+
+boost::scoped_ptr<VolumeTerrainTest> vtt;
 
 int main()
 {
-	HSQUIRRELVM vm = sq_open(1024);
-	sq_setprintfunc(vm, printFunc, printFunc);
-	sq_seterrorhandler(vm);
-	DefaultVM::Set(vm);
+	registerScript(gameEngine->getScript());
 
-	engine::graphics::initOgre();
+	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_SYSRQ, engine::InputManager::KeyState::DOWN,
+		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::GraphicManager::takeScreenshot, gameEngine->getGraphicManager())));
 
-	size_t hWnd = 0;
-	engine::graphics::getDefaultRenderWindow()->getCustomAttribute("WINDOW", &hWnd);
+	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_ESCAPE, engine::InputManager::KeyState::DOWN,
+		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::Engine::stop, gameEngine.get())));
 
-	engine::input::initOIS(hWnd);
-	engine::input::setMouseBufferedArea(engine::graphics::getDefaultRenderWindow()->getWidth(), engine::graphics::getDefaultRenderWindow()->getHeight());
-
-	engine::input::registerKeyBinding("__basic_screenshot", OIS::KC_SYSRQ, engine::input::KeyState::DOWN, [](const OIS::KeyEvent&) {
-		engine::graphics::takeScreenshot();
-	});
-
-	engine::input::registerKeyBinding("__basic_exit", OIS::KC_ESCAPE, engine::input::KeyState::DOWN, [](const OIS::KeyEvent&) {
-		engine::graphics::stopRendering();
-	});
-
-	engine::physics::initPhysicsWorld();
-	engine::graphics::getOGRE()->addFrameListener(engine::physics::getPhysicsFrameListener());
+	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_F10, engine::InputManager::KeyState::DOWN,
+		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::Engine::appendGraphicManipulation, gameEngine.get(),
+		[]() { vtt.reset(new VolumeTerrainTest); })));
 
 	try
 	{
-		BindSquirrel(vm);
-		Script tmp;
-		tmp.CompileFile("scripts/beforeStartingMainLoop.nut");
-		tmp.Run();
-		doMainLoop();
+		gameEngine->getGraphicManager()->addResourceLocation("resources");
+		gameEngine->start();
 	}
 	catch(Ogre::Exception& e)
 	{
 		std::cout << e.what() << std::endl;
-	}
-	catch(Exception& e)
-	{
-		std::cout << e.Message() << std::endl;
 	}
 	catch(std::exception& e)
 	{
@@ -149,8 +179,6 @@ int main()
 	{
 	}
 
-	sq_close(vm);
-	// Windows only...
 	system("pause");
 
 	return 0;

@@ -16,63 +16,78 @@
 
 #include "pch.h"
 
+#include <boost/unordered_map.hpp>
+#include <boost/thread.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/scoped_ptr.hpp>
+
 #include "input.h"
 
-namespace fairytale { namespace engine { namespace input {
+namespace fairytale { namespace engine {
 
-	OIS::InputManager*		inputMgr = 0;
-	OIS::Keyboard*			keyboard = 0;
-	OIS::Mouse*				mouse = 0;
-
-	class OISDestructor
+	struct InputManager::InputManagerImpl : public OIS::KeyListener, public OIS::MouseListener
 	{
-	public:
-		~OISDestructor()
+		OIS::InputManager*	inputMgr;
+		OIS::Keyboard*		keyboard;
+		OIS::Mouse*			mouse;
+
+		struct _KeyBindingImpl
+		{
+			KeyState keyState;
+			boost::function<void(const OIS::KeyEvent&)> callback;
+			std::vector<OIS::KeyCode> withNonCharKeys;
+		};
+
+		typedef boost::unordered_map<boost::uuids::uuid, boost::shared_ptr<_KeyBindingImpl>> KeyBindingImplMap;
+		boost::unordered_map<OIS::KeyCode, KeyBindingImplMap> keyBindings;
+		boost::unordered_map<size_t, boost::shared_ptr<OIS::KeyListener>> keyListeners;
+		boost::unordered_map<size_t, boost::shared_ptr<OIS::MouseListener>> mouseListeners;
+
+		boost::mutex keyBindingMutex, keyListenerMutex, mouseListenerMutex, messagePumpMutex;
+
+		boost::thread_group messageProcessThreads;
+
+		InputManagerImpl() : inputMgr(0), keyboard(0), mouse(0) {}
+		~InputManagerImpl()
 		{
 			if(mouse) inputMgr->destroyInputObject(mouse);
 			if(keyboard) inputMgr->destroyInputObject(keyboard);
 			if(inputMgr) OIS::InputManager::destroyInputSystem(inputMgr);
 		}
-	};
-
-	static OISDestructor autoOISDestructor;
-
-	class KeyListenerManager : public OIS::KeyListener
-	{
-	public:
-		struct KeyBindingKey
-		{
-			std::string name;
-			std::pair<OIS::KeyCode, KeyState> keycode;
-
-			KeyBindingKey(const std::string& name, std::pair<OIS::KeyCode, KeyState> keycode) :
-				name(name), keycode(keycode) {}
-
-			bool operator<(const KeyBindingKey& right) const
-			{
-				// I want to impl a dual-key map. when name is empty, keycode will be map's key, vice versa.
-				if(right.name.empty())
-					return keycode < right.keycode;
-				else if(right.keycode.first == 0 && right.keycode.second == 0)
-					return name < right.name;
-				else
-					return keycode < right.keycode && name < right.name;
-			}
-		};
-
-		typedef boost::function<void(const OIS::KeyEvent&)> KeyHandler;
 
 		bool keyPressed(const OIS::KeyEvent& evt)
 		{
-			KeyActionMap::iterator actioniter(_keybinds.find(KeyBindingKey(std::string(), std::make_pair(evt.key, DOWN))));
-			if(actioniter != _keybinds.end())
 			{
-				actioniter->second(evt);
+				boost::lock_guard<boost::mutex>(this->keyBindingMutex);
+
+				auto possibleBindings(keyBindings.find(evt.key));
+				if(possibleBindings != keyBindings.end())
+				{
+					for(auto iter(possibleBindings->second.begin()); iter != possibleBindings->second.end(); ++iter)
+					{
+						if(iter->second->keyState != KeyState::DOWN)
+							continue;
+
+						bool withKeyAllPressed = true;
+						for(auto withKeysIter(iter->second->withNonCharKeys.begin());
+							withKeyAllPressed && (withKeysIter != iter->second->withNonCharKeys.end()); ++withKeysIter)
+						{
+							if(!keyboard->isKeyDown((*withKeysIter)))
+								withKeyAllPressed = false;
+						}
+
+						if(withKeyAllPressed)
+							iter->second->callback(evt);
+					}
+				}
 			}
 
-			for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
 			{
-				iter->second->keyPressed(evt);
+				boost::lock_guard<boost::mutex>(this->keyListenerMutex);
+
+				for(auto iter(keyListeners.begin()); iter != keyListeners.end(); ++iter)
+					iter->second->keyPressed(evt);
 			}
 
 			return true;
@@ -80,60 +95,46 @@ namespace fairytale { namespace engine { namespace input {
 
 		bool keyReleased(const OIS::KeyEvent& evt)
 		{
-			KeyActionMap::iterator actioniter(_keybinds.find(KeyBindingKey(std::string(), std::make_pair(evt.key, UP))));
-			if(actioniter != _keybinds.end())
 			{
-				actioniter->second(evt);
+				boost::lock_guard<boost::mutex>(this->keyBindingMutex);
+
+				auto possibleBindings(keyBindings.find(evt.key));
+				if(possibleBindings != keyBindings.end())
+				{
+					for(auto iter(possibleBindings->second.begin()); iter != possibleBindings->second.end(); ++iter)
+					{
+						if(iter->second->keyState != KeyState::UP)
+							continue;
+
+						bool withKeyAllReleased = true;
+						for(auto withKeysIter(iter->second->withNonCharKeys.begin());
+							withKeyAllReleased && (withKeysIter != iter->second->withNonCharKeys.end()); ++withKeysIter)
+						{
+							if(keyboard->isKeyDown((*withKeysIter)))
+								withKeyAllReleased = false;
+						}
+
+						if(withKeyAllReleased)
+							iter->second->callback(evt);
+					}
+				}
 			}
 
-			for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
 			{
-				iter->second->keyReleased(evt);
+				boost::lock_guard<boost::mutex>(this->keyListenerMutex);
+
+				for(auto iter(keyListeners.begin()); iter != keyListeners.end(); ++iter)
+					iter->second->keyReleased(evt);
 			}
 
 			return true;
-
 		}
 
-		bool registerKeyBinding(const std::string& name, OIS::KeyCode keycode, KeyState state, const boost::function<void(const OIS::KeyEvent&)>& action)
-		{
-			if(name.empty())
-				return false;
-
-			return _keybinds.insert(std::make_pair(KeyBindingKey(name, std::make_pair(keycode, state)), action)).second;
-		}
-
-		bool unregisterKeyBinding(const std::string& name)
-		{
-			return _keybinds.erase((KeyBindingKey(name, std::make_pair(OIS::KeyCode::KC_UNASSIGNED, NONE))));
-		}
-
-		bool registerListener(const std::string& name, boost::shared_ptr<OIS::KeyListener> listener)
-		{
-			return _general.insert(std::make_pair(name, listener)).second;
-		}
-
-		bool unregisterListener(const std::string& name)
-		{
-			return _general.erase(name);
-		}
-
-	private:
-		typedef std::map<KeyBindingKey, KeyHandler> KeyActionMap;
-		typedef std::unordered_map<std::string, boost::shared_ptr<OIS::KeyListener>> ListenerMap;
-
-		ListenerMap _general;
-		KeyActionMap _keybinds;
-	};
-
-	static KeyListenerManager keyListenerManager;
-
-	class MouseListenerManager : public OIS::MouseListener
-	{
-	public:
 		bool mouseMoved(const OIS::MouseEvent& evt)
 		{
-			for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
+			boost::lock_guard<boost::mutex>(this->mouseListenerMutex);
+
+			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
 			{
 				iter->second->mouseMoved(evt);
 			}
@@ -143,7 +144,9 @@ namespace fairytale { namespace engine { namespace input {
 
 		bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 		{
-			for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
+			boost::lock_guard<boost::mutex>(this->mouseListenerMutex);
+
+			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
 			{
 				iter->second->mousePressed(evt, id);
 			}
@@ -153,89 +156,120 @@ namespace fairytale { namespace engine { namespace input {
 
 		bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 		{
-			for(ListenerMap::iterator iter(_general.begin()); iter != _general.end(); ++iter)
+			boost::lock_guard<boost::mutex>(this->mouseListenerMutex);
+
+			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
 			{
 				iter->second->mouseReleased(evt, id);
 			}
 
 			return true;
 		}
-
-		bool registerListener(const std::string& name, boost::shared_ptr<OIS::MouseListener> listener)
-		{
-			return _general.insert(std::make_pair(name, listener)).second;
-		}
-
-		bool unregisterListener(const std::string& name)
-		{
-			return _general.erase(name);
-		}
-
-	private:
-		typedef std::unordered_map<std::string, boost::shared_ptr<OIS::MouseListener>> ListenerMap;
-
-		ListenerMap _general;
 	};
-
-	static MouseListenerManager mouseListenerManager;
-
-	void initOIS(size_t hWindow)
+	
+	InputManager::InputManager(size_t windowHandle) : _mImpl(new InputManagerImpl)
 	{
 		OIS::ParamList paramlist;
-		paramlist.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(hWindow)));
+		paramlist.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(windowHandle)));
 
-		inputMgr = OIS::InputManager::createInputSystem(paramlist);
-		keyboard = static_cast<OIS::Keyboard*>(inputMgr->createInputObject(OIS::OISKeyboard, true));
-		mouse = static_cast<OIS::Mouse*>(inputMgr->createInputObject(OIS::OISMouse, true));
+		_mImpl->inputMgr = OIS::InputManager::createInputSystem(paramlist);
+		_mImpl->keyboard = static_cast<OIS::Keyboard*>(_mImpl->inputMgr->createInputObject(OIS::OISKeyboard, true));
+		_mImpl->mouse = static_cast<OIS::Mouse*>(_mImpl->inputMgr->createInputObject(OIS::OISMouse, true));
 
-		keyboard->setEventCallback(&keyListenerManager);
-		mouse->setEventCallback(&mouseListenerManager);
+		_mImpl->keyboard->setEventCallback(_mImpl);
+		_mImpl->mouse->setEventCallback(_mImpl);
 	}
 
-	void setMouseBufferedArea(int width, int height)
+	InputManager::~InputManager()
 	{
-		mouse->getMouseState().width = width;
-		mouse->getMouseState().height = height;
+		delete _mImpl;
 	}
 
-	OIS::Keyboard* getKeyboard()
+	void InputManager::setMouseBufferedArea(std::pair<int, int> widthAndHeight)
 	{
-		return keyboard;
+		_mImpl->mouse->getMouseState().width = widthAndHeight.first;
+		_mImpl->mouse->getMouseState().height = widthAndHeight.second;
 	}
 
-	OIS::Mouse* getMouse()
+	boost::shared_ptr<InputManager::KeyBinding> InputManager::registerKeyBinding(
+		OIS::KeyCode keyCode, KeyState state,
+		const boost::function<void(const OIS::KeyEvent&)>& callback,
+		const std::vector<OIS::KeyCode>& withNonCharKeys)
 	{
-		return mouse;
+		boost::shared_ptr<InputManagerImpl::_KeyBindingImpl> newBinding(new InputManagerImpl::_KeyBindingImpl);
+
+		newBinding->keyState = state;
+		newBinding->callback = callback;
+		newBinding->withNonCharKeys = withNonCharKeys;
+
+		boost::shared_ptr<KeyBinding> bindingId(new KeyBinding);
+
+		bindingId->keyCode = keyCode;
+		bindingId->bindingId = boost::uuids::random_generator()();
+
+		{
+			boost::lock_guard<boost::mutex>(_mImpl->keyBindingMutex);
+
+			_mImpl->keyBindings[keyCode].insert(std::make_pair(bindingId->bindingId, newBinding));
+		}
+
+		return bindingId;
 	}
 
-	bool registerKeyBinding(const std::string& name, OIS::KeyCode keycode, KeyState state, const boost::function<void(const OIS::KeyEvent&)>& action)
+	bool InputManager::unregisterKeyBinding(const boost::shared_ptr<KeyBinding>& bindingInfo)
 	{
-		return keyListenerManager.registerKeyBinding(name, keycode, state, action);
+		boost::lock_guard<boost::mutex>(_mImpl->keyBindingMutex);
+
+		auto keyIter(_mImpl->keyBindings.find(bindingInfo->keyCode));
+		if(keyIter == _mImpl->keyBindings.end())
+			return false;
+
+		if(keyIter->second.erase(bindingInfo->bindingId) == 0)
+			return false;
+
+		if(keyIter->second.empty())
+			_mImpl->keyBindings.erase(keyIter);
+
+		return true;
 	}
 
-	bool unregisterKeyBinding(const std::string& name)
+	bool InputManager::registerKeyListener(const boost::shared_ptr<OIS::KeyListener>& listener)
 	{
-		return keyListenerManager.unregisterKeyBinding(name);
+		boost::lock_guard<boost::mutex>(_mImpl->keyListenerMutex);
+
+		return _mImpl->keyListeners.insert(std::make_pair((size_t)listener.get(), listener)).second;
 	}
 
-	bool registerKeyListener(const std::string& name, const boost::shared_ptr<OIS::KeyListener>& listener)
+	bool InputManager::unregisterKeyListener(const boost::shared_ptr<OIS::MouseListener>& listener)
 	{
-		return keyListenerManager.registerListener(name, listener);
+		boost::lock_guard<boost::mutex>(_mImpl->keyListenerMutex);
+
+		return _mImpl->keyListeners.erase((size_t)listener.get()) != 0;
 	}
 
-	bool unregisterKeyListener(const std::string& name)
+	bool InputManager::registerMouseListener(const boost::shared_ptr<OIS::MouseListener>& listener)
 	{
-		return keyListenerManager.unregisterListener(name);
+		boost::lock_guard<boost::mutex>(_mImpl->mouseListenerMutex);
+
+		return _mImpl->mouseListeners.insert(std::make_pair((size_t)listener.get(), listener)).second;
 	}
 
-	bool registerMouseListener(const std::string& name, const boost::shared_ptr<OIS::MouseListener>& listener)
+	bool InputManager::unregisterMouseListener(const boost::shared_ptr<OIS::MouseListener>& listener)
 	{
-		return mouseListenerManager.registerListener(name, listener);
+		boost::lock_guard<boost::mutex>(_mImpl->mouseListenerMutex);
+
+		return _mImpl->mouseListeners.erase((size_t)listener.get()) != 0;
 	}
 
-	bool unregisterMouseListener(const std::string& name)
+	void InputManager::processOneInputFrame()
 	{
-		return mouseListenerManager.unregisterListener(name);
-	}
+		{
+			boost::lock_guard<boost::mutex>(_mImpl->messagePumpMutex);
 
-} } }
+			Ogre::WindowEventUtilities::messagePump();
+		}
+		
+		_mImpl->keyboard->capture();
+		_mImpl->mouse->capture();
+	}
+} }

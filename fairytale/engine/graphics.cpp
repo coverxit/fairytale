@@ -18,71 +18,84 @@
 
 //#include <Ogre/Overlay/OgreOverlaySystem.h>
 
+#include <queue>
+#include <boost/thread.hpp>
+#include <boost/scoped_ptr.hpp>
+
 #include "graphics.h"
 #include "../util/file.h"
 
-namespace fairytale { namespace engine { namespace graphics {
+namespace fairytale { namespace engine {
 
-	boost::scoped_ptr<Ogre::Root>	ogreRoot;
-	Ogre::RenderWindow*				renderWnd;
-	Ogre::Viewport*					defaultViewport;
-	bool							shutdown;
-	boost::mutex					ogreMutex;
-	
-	OGREMutexLock::OGREMutexLock()
+	struct GraphicManager::GraphicManagerImpl
 	{
-		ogreMutex.try_lock();
-	}
+		boost::scoped_ptr<Ogre::Root>		ogre;
+		Ogre::RenderWindow*					window;
+		Ogre::Viewport*						viewport;
+		std::queue<boost::function<void()>>	operationsNextFrame;
+		boost::mutex						operationQueueMutex;
+	};
 
-	OGREMutexLock::~OGREMutexLock()
+	GraphicManager::GraphicManager() : _mImpl(new GraphicManagerImpl)
 	{
-		ogreMutex.unlock();
-	}
-
-	void initOgre()
-	{
-		ogreRoot.reset(new Ogre::Root(Ogre::StringUtil::BLANK, "engine.ini", "fairytale.log"));
+		_mImpl->ogre.reset(new Ogre::Root(Ogre::StringUtil::BLANK, "engine.ini", "fairytale.log"));
 		//new Ogre::OverlaySystem();
 
-		loadPluginsFromDirectory("plugins");
+		_loadPluginsFromDirectory("plugins");
 
-		if(!ogreRoot->showConfigDialog())
-			stopRendering();
+		if(!_mImpl->ogre->showConfigDialog())
+			exit(EXIT_FAILURE);
 
-		renderWnd = ogreRoot->initialise(true, "the world fairytale");
-		defaultViewport = renderWnd->addViewport(0);
-		defaultViewport->setBackgroundColour(Ogre::ColourValue(0.0f, 0.0f, 0.0f, 1.0f));
-		renderWnd->setActive(true);
-
-		shutdown = false;
+		_mImpl->window = _mImpl->ogre->initialise(true, "the world fairytale");
+		_mImpl->viewport = _mImpl->window->addViewport(0);
+		_mImpl->viewport->setBackgroundColour(Ogre::ColourValue(0.0f, 0.0f, 0.0f, 1.0f));
+		_mImpl->window->setActive(true);
 	}
 
-	void stopRendering()
+	GraphicManager::~GraphicManager()
 	{
-		shutdown = true;
-	}
-	
-	bool renderingStopped()
-	{
-		return shutdown;
+		delete _mImpl;
 	}
 
-	Ogre::Root* getOGRE()
+	void GraphicManager::renderOneFrame()
 	{
-		return ogreRoot.get();
+		{
+			boost::lock_guard<boost::mutex>(_mImpl->operationQueueMutex);
+
+			while(!_mImpl->operationsNextFrame.empty())
+			{
+				_mImpl->operationsNextFrame.front()();
+				_mImpl->operationsNextFrame.pop();
+			}
+		}
+		
+		_mImpl->ogre->renderOneFrame();
 	}
 
-	Ogre::RenderWindow* getDefaultRenderWindow()
+	void GraphicManager::appendEngineManipulation(const boost::function<void()>& operate)
 	{
-		return renderWnd;
+		boost::lock_guard<boost::mutex>(_mImpl->operationQueueMutex);
+		_mImpl->operationsNextFrame.push(operate);
 	}
 
-	Ogre::Viewport* getDefaultViewport()
+	void GraphicManager::addFrameListener(Ogre::FrameListener* listener)
 	{
-		return defaultViewport;
+		_mImpl->ogre->addFrameListener(listener);
 	}
-	
-	void addResourceLocation(const std::string& dir)
+
+	void GraphicManager::removeFrameListener(Ogre::FrameListener* listener)
+	{
+		_mImpl->ogre->removeFrameListener(listener);
+	}
+
+	size_t GraphicManager::getRenderWindowHandle()
+	{
+		size_t hWnd = 0;
+		_mImpl->window->getCustomAttribute("WINDOW", &hWnd);
+		return hWnd;
+	}
+
+	void GraphicManager::addResourceLocation(const std::string& dir)
 	{
 		using namespace fairytale::util;
 
@@ -93,34 +106,61 @@ namespace fairytale { namespace engine { namespace graphics {
 
 			processDirectory(grouppath, [&groupdirname](const std::string& sourcepath) {
 				Ogre::ResourceGroupManager::getSingleton().addResourceLocation(sourcepath, "FileSystem", groupdirname);
-			}, ONLY_DIRECTORY, true);
+			}, DirectoryProcessMode::ONLY_DIRECTORY, true);
 
 			processFilesInDirectory(grouppath, [&groupdirname](const std::string& sourcepath) {
 				Ogre::ResourceGroupManager::getSingleton().addResourceLocation(sourcepath, "Zip", groupdirname);
 			}, true, ".*\.zip");
 
 			Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup(groupdirname);
-		}, ONLY_DIRECTORY, false);
+		}, DirectoryProcessMode::ONLY_DIRECTORY, false);
 	}
 
-	void loadPlugin(const Ogre::String& filename)
+	void GraphicManager::_loadPlugin(const std::string& fileName)
 	{
-		OGREMutexLock();
-		ogreRoot->loadPlugin(filename);
+		_mImpl->ogre->loadPlugin(fileName);
 	}
 
-	void loadPluginsFromDirectory(const std::string& dir)
+	void GraphicManager::_loadPluginsFromDirectory(const std::string& dir)
 	{
-		OGREMutexLock();
-		util::processFilesInDirectory(dir, [](const std::string& plugin) {
-			ogreRoot->loadPlugin(plugin);
+		util::processFilesInDirectory(dir, [this](const std::string& plugin) {
+			_mImpl->ogre->loadPlugin(plugin);
 		}, true, ".*\.dll");
 	}
 
-	void takeScreenshot()
+	void GraphicManager::takeScreenshot()
 	{
-		OGREMutexLock();
-		renderWnd->writeContentsToTimestampedFile("fairytale_screenshot_", ".png");
+		_mImpl->window->writeContentsToTimestampedFile("fairytale_screenshot_", ".png");
 	}
 
-} } }
+	std::pair<int, int> GraphicManager::getRenderWindowWidthAndHeight()
+	{
+		return std::pair<int, int>(_mImpl->window->getWidth(), _mImpl->window->getHeight());
+	}
+
+	float GraphicManager::getViewportAspectRatio()
+	{
+		return (double)_mImpl->viewport->getActualWidth() / (double)_mImpl->viewport->getActualHeight();
+	}
+
+	Ogre::Root* GraphicManager::getOgreRoot()
+	{
+		return _mImpl->ogre.get();
+	}
+
+	void GraphicManager::setCamera(Ogre::Camera* cam)
+	{
+		_mImpl->viewport->setCamera(cam);
+	}
+
+	void GraphicManager::addWindowEventListener(Ogre::WindowEventListener* listener)
+	{
+		Ogre::WindowEventUtilities::addWindowEventListener(_mImpl->window, listener);
+	}
+
+	void GraphicManager::removeWindowEventListener(Ogre::WindowEventListener* listener)
+	{
+		Ogre::WindowEventUtilities::removeWindowEventListener(_mImpl->window, listener);
+	}
+
+} }

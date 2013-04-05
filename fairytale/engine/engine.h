@@ -14,29 +14,44 @@
  * limitations under the License.
  */
 
-#ifndef __FAIRYTALE_GAME_PHYSICS_H__
-#define __FAIRYTALE_GAME_PHYSICS_H__
+#ifndef __FAIRYTALE_ENGINE_IMPL_H__
+#define __FAIRYTALE_ENGINE_IMPL_H__
 
-class btRigidBody;
+#include <string>
+#include <boost/function.hpp>
+
+namespace chaiscript {
+
+	class ChaiScript;
+
+}
 
 namespace fairytale { namespace engine {
 
-	class PhysicsWorld
+	class InputManager;
+	class GraphicManager;
+	class PhysicsWorld;
+
+	// Thread-safe class.
+	class Engine
 	{
 	private:
-		struct PhysicsWorldImpl;
-		PhysicsWorldImpl* _mImpl;
+		struct EngineImpl;
+		EngineImpl* _mImpl;
+		void _processScript();
 
 	public:
-		PhysicsWorld();
-		~PhysicsWorld();
+		Engine();
+		~Engine();
 
-		void setGravity(float x, float y, float z);
-		void startPhysicsSimulation();
-		void stopPhysicsSimulation();
-		void calculateOnePhysicsFrame(float timeSinceLastFrame);
-		void addRigidBody(btRigidBody* body);
-		void removeRigidBody(btRigidBody* body);
+		void start();
+		void stop();
+		void appendGraphicManipulation(const boost::function<void()>& operate);
+		void appendScriptCommand(const std::string& cmdLine);
+		InputManager* getInputManager();
+		GraphicManager* getGraphicManager();
+		PhysicsWorld* getPhysicsWorld();
+		chaiscript::ChaiScript* getScript();
 	};
 
 } }

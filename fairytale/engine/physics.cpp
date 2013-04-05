@@ -16,67 +16,81 @@
 
 #include "pch.h"
 
+#include <boost/thread.hpp>
+#include <boost/date_time.hpp>
+#include <boost/scoped_ptr.hpp>
+
 #include "physics.h"
+#include "btogre-fork/BtOgreExtras.h"
+#include "btogre-fork/BtOgreGP.h"
+#include "btogre-fork/BtOgrePG.h"
 
-namespace fairytale { namespace engine { namespace physics {
+namespace fairytale { namespace engine {
 
-	class BulletPhysicsWorld
+	struct PhysicsWorld::PhysicsWorldImpl
 	{
-	public:
-		btAxisSweep3*							broadPhase;
-		btDefaultCollisionConfiguration*		collisionConfig;
-		btCollisionDispatcher*					dispatcher;
-		btSequentialImpulseConstraintSolver*	solver;
-		btDynamicsWorld*						phyWorld;
+		boost::scoped_ptr<btAxisSweep3>							broadPhase;
+		boost::scoped_ptr<btDefaultCollisionConfiguration>		collisionConfig;
+		boost::scoped_ptr<btCollisionDispatcher>				dispatcher;
+		boost::scoped_ptr<btSequentialImpulseConstraintSolver>	solver;
+		boost::scoped_ptr<btDynamicsWorld>						phyWorld;
+		boost::mutex											physicsMutex;
+		bool													shutdownCalled;
+		boost::posix_time::ptime								lastFrameTime;
 
-		BulletPhysicsWorld::BulletPhysicsWorld() :
+		PhysicsWorldImpl::PhysicsWorldImpl() :
 			broadPhase(new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024)),
 			collisionConfig(new btDefaultCollisionConfiguration()),
-			dispatcher(new btCollisionDispatcher(collisionConfig)),
+			dispatcher(new btCollisionDispatcher(collisionConfig.get())),
 			solver(new btSequentialImpulseConstraintSolver()),
-			phyWorld(new btDiscreteDynamicsWorld(dispatcher, broadPhase, solver, collisionConfig))
+			phyWorld(new btDiscreteDynamicsWorld(dispatcher.get(), broadPhase.get(), solver.get(), collisionConfig.get())),
+			shutdownCalled(false),
+			lastFrameTime(boost::posix_time::microsec_clock::local_time())
 		{
-			phyWorld->setGravity(btVector3(0,-9.8,0));
-		}
-
-		BulletPhysicsWorld::~BulletPhysicsWorld()
-		{
-			delete phyWorld;
-
-			delete broadPhase;
-			delete collisionConfig;
-			delete dispatcher;
-			delete solver;
+			phyWorld->setGravity(btVector3(0.0f ,-9.8f, 0.0f));
 		}
 	};
 
-	boost::scoped_ptr<BulletPhysicsWorld> bulletWorld;
+	PhysicsWorld::PhysicsWorld() : _mImpl(new PhysicsWorldImpl) {}
 
-	class PhysicsFrameListener : public Ogre::FrameListener
+	PhysicsWorld::~PhysicsWorld()
 	{
-		bool frameStarted(const Ogre::FrameEvent &evt)
+		delete _mImpl;
+	}
+
+	void PhysicsWorld::setGravity(float x, float y, float z)
+	{
+		boost::lock_guard<boost::mutex>(_mImpl->physicsMutex);
+		_mImpl->phyWorld->setGravity(btVector3(x, y, z));
+	}
+
+	void PhysicsWorld::startPhysicsSimulation()
+	{
+		while(!_mImpl->shutdownCalled)
 		{
-			bulletWorld->phyWorld->stepSimulation(evt.timeSinceLastFrame, 10);
-			return true;
+			boost::lock_guard<boost::mutex>(_mImpl->physicsMutex);
+			
+			boost::posix_time::time_duration diff = boost::posix_time::microsec_clock::local_time() - _mImpl->lastFrameTime;
+			_mImpl->lastFrameTime = boost::posix_time::microsec_clock::local_time();
+			_mImpl->phyWorld->stepSimulation((float)((double)diff.total_microseconds() / (double)1000.0));
 		}
-	};
-
-	boost::scoped_ptr<PhysicsFrameListener> physicslistner;
-
-	void initPhysicsWorld()
-	{
-		bulletWorld.reset(new BulletPhysicsWorld());
-		physicslistner.reset(new PhysicsFrameListener());
 	}
 
-	Ogre::FrameListener* getPhysicsFrameListener()
+	void PhysicsWorld::stopPhysicsSimulation()
 	{
-		return physicslistner.get();
+		_mImpl->shutdownCalled = true;
 	}
 
-	btDynamicsWorld* getPhysicsWorld()
+	void PhysicsWorld::addRigidBody(btRigidBody* body)
 	{
-		return bulletWorld->phyWorld;
+		boost::lock_guard<boost::mutex>(_mImpl->physicsMutex);
+		_mImpl->phyWorld->addRigidBody(body);
 	}
 
-} } }
+	void PhysicsWorld::removeRigidBody(btRigidBody* body)
+	{
+		boost::lock_guard<boost::mutex>(_mImpl->physicsMutex);
+		_mImpl->phyWorld->removeRigidBody(body);
+	}
+
+} }

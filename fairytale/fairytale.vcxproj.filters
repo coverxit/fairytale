@@ -54,18 +54,14 @@
     <ClCompile Include="game\game-env.cpp">
       <Filter>game\env</Filter>
     </ClCompile>
-    <ClCompile Include="game\game-scene.cpp">
-      <Filter>game\scene</Filter>
-    </ClCompile>
-    <ClCompile Include="export\squirrel.cpp">
-      <Filter>export</Filter>
-    </ClCompile>
     <ClCompile Include="game\hydraxtest.cpp">
       <Filter>game\env</Filter>
     </ClCompile>
     <ClCompile Include="game\bullet.cpp">
       <Filter>game</Filter>
     </ClCompile>
+    <ClCompile Include="engine\engine.cpp" />
+    <ClCompile Include="btogre-fork\BtOgre.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\graphics.h">
@@ -92,14 +88,12 @@
     <ClInclude Include="game\game-env.h">
       <Filter>game\env</Filter>
     </ClInclude>
-    <ClInclude Include="game\game-scene.h">
-      <Filter>game\scene</Filter>
-    </ClInclude>
-    <ClInclude Include="game\game-terrain.h">
-      <Filter>game\terrain</Filter>
-    </ClInclude>
     <ClInclude Include="game\debug-cameraman.h">
       <Filter>debugger</Filter>
     </ClInclude>
+    <ClInclude Include="engine\engine.h" />
+    <ClInclude Include="btogre-fork\BtOgreExtras.h" />
+    <ClInclude Include="btogre-fork\BtOgreGP.h" />
+    <ClInclude Include="btogre-fork\BtOgrePG.h" />
   </ItemGroup>
 </Project>

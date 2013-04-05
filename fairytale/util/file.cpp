@@ -33,7 +33,7 @@ namespace fairytale { namespace util {
 				{
 					processDirectory(iter->path().string(), action, mode, includesubdirs);
 				}
-				if((mode == ALL) || (mode == ONLY_FILE && is_regular_file(*iter)) || (mode == ONLY_DIRECTORY && is_directory(*iter)))
+				if((mode == DirectoryProcessMode::ALL) || (mode == DirectoryProcessMode::ONLY_FILE && is_regular_file(*iter)) || (mode == DirectoryProcessMode::ONLY_DIRECTORY && is_directory(*iter)))
 				{
 					action(iter->path().string());
 				}
@@ -47,7 +47,7 @@ namespace fairytale { namespace util {
 		processDirectory(dir, [&what, &filefilter, &action](const std::string& path) {
 			if(filefilter.empty() || boost::regex_match(path, what, boost::regex(filefilter)))
 				action(path);
-		}, ONLY_FILE, includesubdirs);
+		}, DirectoryProcessMode::ONLY_FILE, includesubdirs);
 	}
 
 } }

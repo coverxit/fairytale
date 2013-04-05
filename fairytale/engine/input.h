@@ -17,33 +17,62 @@
 #ifndef __FAIRYTALE_ENGINE_INPUT_H__
 #define __FAIRYTALE_ENGINE_INPUT_H__
 
-#include "pch.h"
+#include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <utility>
+#include <vector>
 
-namespace fairytale { namespace engine { namespace input {
+namespace OIS {
 
-	void initOIS(size_t hWindow);
+	enum KeyCode;
+	class KeyListener;
+	class MouseListener;
+	class KeyEvent;
 
-	OIS::Keyboard* getKeyboard();
-	OIS::Mouse* getMouse();
+}
 
-	void setMouseBufferedArea(int width, int height);
-
-	enum KeyState
+namespace fairytale { namespace engine {
+	
+	// Thread-safe class
+	class InputManager
 	{
-		NONE = 0,
-		UP = 1,
-		DOWN = 2
+	private:
+		struct InputManagerImpl;
+		InputManagerImpl* _mImpl;
+
+	public:
+		InputManager(size_t windowHandle);
+		~InputManager();
+
+		enum class KeyState
+		{
+			NONE = 0,
+			UP = 1,
+			DOWN = 2
+		};
+
+		struct KeyBinding
+		{
+			OIS::KeyCode keyCode;
+			boost::uuids::uuid bindingId;
+		};
+		
+		void setMouseBufferedArea(std::pair<int, int> widthAndHeight);
+
+		boost::shared_ptr<KeyBinding> registerKeyBinding(OIS::KeyCode keyCode, KeyState state,
+			const boost::function<void(const OIS::KeyEvent&)>& callback, const std::vector<OIS::KeyCode>& withNonCharKeys = std::vector<OIS::KeyCode>());
+		bool unregisterKeyBinding(const boost::shared_ptr<KeyBinding>& bindingInfo);
+
+		bool registerKeyListener(const boost::shared_ptr<OIS::KeyListener>& listener);
+		bool unregisterKeyListener(const boost::shared_ptr<OIS::MouseListener>& listener);
+
+		bool registerMouseListener(const boost::shared_ptr<OIS::MouseListener>& listener);
+		bool unregisterMouseListener(const boost::shared_ptr<OIS::MouseListener>& listener);
+
+		void processOneInputFrame();
 	};
 
-	bool registerKeyBinding(const std::string& name, OIS::KeyCode keycode, KeyState state, const boost::function<void(const OIS::KeyEvent&)>& action);
-	bool unregisterKeyBinding(const std::string& name);
-
-	bool registerKeyListener(const std::string& name, const boost::shared_ptr<OIS::KeyListener>& listener);
-	bool unregisterKeyListener(const std::string& name);
-
-	bool registerMouseListener(const std::string& name, const boost::shared_ptr<OIS::MouseListener>& listener);
-	bool unregisterMouseListener(const std::string& name);
-
-} } }
+} }
 
 #endif

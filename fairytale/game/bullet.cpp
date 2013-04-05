@@ -77,8 +77,6 @@ class BtOgreTestApplication
  
 	void createScene(void)
 	{
-		LOCK_AND_GET_INSTANCE_PTR(CoreMembers, core);
-
 	    //----------------------------------------------------------
 	    // Ninja!
 	    //----------------------------------------------------------

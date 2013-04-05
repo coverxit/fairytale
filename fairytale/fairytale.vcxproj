@@ -39,14 +39,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>E:\libs\boost_1_52_0\lib\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\SQUIRREL3\lib\$(Configuration)\;E:\libs\btogre-master\lib\$(Configuration)\;$(OutDir)</LibraryPath>
-    <IncludePath>E:\libs\boost_1_52_0\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\SQUIRREL3\include\;E:\libs\sqrat-0.8.2\include\;E:\libs\btogre-master\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\libs\boost_1_52_0\lib\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\libs\boost_1_52_0\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)~$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)~$(Configuration)Temp\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LibraryPath>E:\libs\boost_1_52_0\lib\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\SQUIRREL3\lib\$(Configuration)\;E:\libs\btogre-master\lib\$(Configuration)\;$(OutDir);$(LibraryPath)</LibraryPath>
-    <IncludePath>E:\libs\boost_1_52_0\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\SQUIRREL3\include\;E:\libs\sqrat-0.8.2\include\;E:\libs\btogre-master\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\libs\boost_1_52_0\lib\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\libs\boost_1_52_0\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)~$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)~$(Configuration)Temp\</IntDir>
   </PropertyGroup>
@@ -54,7 +54,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalOptions>/Zm300 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zm500 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE\Overlay;E:\libs\sqrat-0.8.2\include\;E:\libs\SQUIRREL3\include\;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -62,6 +62,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>OgreMain.lib;OIS.lib;OgreOverlay.lib;SkyX.lib;bulletdynamics.lib;bulletcollision.lib;linearmath.lib;OgreVolume.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -72,7 +73,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalOptions>/Zm300 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zm500 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE\Overlay;E:\libs\sqrat-0.8.2\include\;E:\libs\SQUIRREL3\include\;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -80,10 +81,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>OgreMain.lib;OIS.lib;sqstdlib.lib;squirrel.lib;OgreOverlay.lib;SkyX.lib;BtOgre.lib;bulletdynamics.lib;bulletcollision.lib;linearmath.lib;OgreVolume.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OgreMain.lib;OIS.lib;OgreOverlay.lib;SkyX.lib;bulletdynamics.lib;bulletcollision.lib;linearmath.lib;OgreVolume.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="btogre-fork\BtOgre.cpp" />
     <ClCompile Include="engine\graphics.cpp" />
     <ClCompile Include="engine\input.cpp" />
     <ClCompile Include="main.cpp" />
@@ -91,12 +93,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="export\squirrel.cpp" />
     <ClCompile Include="game\game-env.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="engine\physics.cpp" />
-    <ClCompile Include="game\game-scene.cpp" />
     <ClCompile Include="game\hydraxtest.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -109,6 +109,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="engine\engine.cpp">
+      <FileType>CppHeader</FileType>
+    </ClCompile>
+    <ClInclude Include="btogre-fork\BtOgreExtras.h" />
+    <ClInclude Include="btogre-fork\BtOgreGP.h" />
+    <ClInclude Include="btogre-fork\BtOgrePG.h" />
+    <ClInclude Include="engine\engine.h" />
     <ClInclude Include="game\debug-cameraman.h" />
     <ClInclude Include="engine\graphics.h" />
     <ClInclude Include="engine\input.h" />
@@ -122,8 +129,6 @@
     <ClInclude Include="game\game-env.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="game\game-scene.h" />
-    <ClInclude Include="game\game-terrain.h" />
     <ClInclude Include="util\file.h" />
     <ClInclude Include="engine\physics.h" />
   </ItemGroup>

@@ -17,31 +17,49 @@
 #ifndef __FAIRYTALE_ENGINE_GRAPHICS_H__
 #define __FAIRYTALE_ENGINE_GRAPHICS_H__
 
-#include "pch.h"
+#include <string>
+#include <boost/function.hpp>
+#include <utility>
 
-namespace fairytale { namespace engine { namespace graphics {
+namespace Ogre {
 
-	class OGREMutexLock
+	class Root;
+	class FrameListener;
+	class Camera;
+	class WindowEventListener;
+
+}
+
+namespace fairytale { namespace engine {
+
+	class GraphicManager
 	{
+	private:
+		struct GraphicManagerImpl;
+		GraphicManagerImpl* _mImpl;
+		void _loadPlugin(const std::string& fileName);
+		void _loadPluginsFromDirectory(const std::string& dir);
+
 	public:
-		OGREMutexLock();
-		~OGREMutexLock();
+		GraphicManager();
+		~GraphicManager();
+
+		void renderOneFrame();
+		void addFrameListener(Ogre::FrameListener* listener);
+		void removeFrameListener(Ogre::FrameListener* listener);
+		size_t getRenderWindowHandle();
+		std::pair<int, int> getRenderWindowWidthAndHeight();
+		float getViewportAspectRatio();
+		// Thread-safe function. Append an operate to graphic system that will be done before rendering next frame.
+		void appendEngineManipulation(const boost::function<void()>& operate);
+		void addResourceLocation(const std::string& dir);
+		void takeScreenshot();
+		Ogre::Root* getOgreRoot();
+		void setCamera(Ogre::Camera* cam);
+		void addWindowEventListener(Ogre::WindowEventListener* listener);
+		void removeWindowEventListener(Ogre::WindowEventListener* listener);
 	};
 
-	void initOgre();
-	void stopRendering();
-	bool renderingStopped();
-
-	Ogre::Root* getOGRE();
-	Ogre::RenderWindow* getDefaultRenderWindow();
-	Ogre::Viewport* getDefaultViewport();
-
-	void addResourceLocation(const std::string& dir);
-	void loadPlugin(const std::string& filename);
-	void loadPluginsFromDirectory(const std::string& dir);
-
-	void takeScreenshot();
-
-} } }
+} }
 
 #endif

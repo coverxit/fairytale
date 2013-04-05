@@ -26,7 +26,7 @@
 
 namespace fairytale { namespace util {
 
-	enum DirectoryProcessMode
+	enum class DirectoryProcessMode
 	{
 		ONLY_FILE,
 		ONLY_DIRECTORY,

@@ -19,23 +19,6 @@
 
 #include <OGRE/Ogre.h>
 #include <OIS/OIS.h>
-
-#include <BtOgrePG.h>
-#include <BtOgreGP.h>
-#include <BtOgreExtras.h>
-
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
-#include <boost/date_time.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/regex.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <chaiscript/chaiscript.hpp>
 
 #endif
