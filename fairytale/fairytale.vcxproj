@@ -53,20 +53,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\lib;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;$(OutDir);$(LibraryPath)</LibraryPath>
-    <IncludePath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\lib;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)~$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)~$(Configuration)Temp\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LibraryPath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\lib;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;$(OutDir);$(LibraryPath)</LibraryPath>
-    <IncludePath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\lib;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\lib\$(Configuration)\;E:\libs\plugins-vc110-x86-10.02.2013\lib\$(Configuration)\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)~$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)~$(Configuration)Temp\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDbgInfo|Win32'">
-    <LibraryPath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\lib;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\lib\Release\;E:\libs\plugins-vc110-x86-10.02.2013\lib\Release\;$(OutDir);$(LibraryPath)</LibraryPath>
-    <IncludePath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\lib;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\lib\Release\;E:\libs\plugins-vc110-x86-10.02.2013\lib\Release\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\libs\boost-1.54-rev83600-vc110-x86-27.03.2013\include\;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include;E:\libs\plugins-vc110-x86-10.02.2013\include\;E:\libs\chaiscript-4.2.0-Source\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)~$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)~$(Configuration)Temp\</IntDir>
   </PropertyGroup>
@@ -77,7 +77,7 @@
       <AdditionalOptions>/Zm500 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE\Overlay;E:\libs\sqrat-0.8.2\include\;E:\libs\SQUIRREL3\include\;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include\OGRE\Overlay;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -94,7 +94,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/Zm500 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE\Overlay;E:\libs\sqrat-0.8.2\include\;E:\libs\SQUIRREL3\include\;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include\OGRE\Overlay;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -113,7 +113,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/Zm500 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-10.02.2013\include\OGRE\Overlay;E:\libs\sqrat-0.8.2\include\;E:\libs\SQUIRREL3\include\;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\libs\plugins-vc110-x86-10.02.2013\include\bullet;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include\OGRE;E:\libs\OGRE-SDK-1.9.0-vc110-x86-27.03.2013\include\OGRE\Overlay;$(ProjectDir)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

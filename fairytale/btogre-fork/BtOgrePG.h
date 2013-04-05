@@ -19,8 +19,8 @@
 #ifndef _BtOgreGP_H_
 #define _BtOgreGP_H_
 
-#include "btBulletDynamicsCommon.h"
-#include "OgreSceneNode.h"
+#include <bullet/btBulletDynamicsCommon.h>
+#include <Ogre/OgreSceneNode.h>
 #include "BtOgreExtras.h"
 
 #include "engine/engine.h"
