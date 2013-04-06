@@ -38,7 +38,6 @@ namespace fairytale { namespace engine {
 	private:
 		struct EngineImpl;
 		EngineImpl* _mImpl;
-		void _processScript();
 
 	public:
 		Engine();
@@ -48,6 +47,8 @@ namespace fairytale { namespace engine {
 		void stop();
 		void appendGraphicManipulation(const boost::function<void()>& operate);
 		void appendScriptCommand(const std::string& cmdLine);
+		// DO NOT call this unless YOU are a thread.
+		void _processScript();
 		InputManager* getInputManager();
 		GraphicManager* getGraphicManager();
 		PhysicsWorld* getPhysicsWorld();

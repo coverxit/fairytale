@@ -19,6 +19,7 @@
 #include <boost/bind.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <queue>
+#include <boost/atomic.hpp>
 
 #include "engine.h"
 #include "graphics.h"
@@ -33,15 +34,13 @@ namespace fairytale { namespace engine {
 		boost::scoped_ptr<InputManager>		input;
 		boost::scoped_ptr<PhysicsWorld>		physics;
 		boost::scoped_ptr<chaiscript::ChaiScript> script;
-		boost::scoped_ptr<boost::thread>	physicsThread;
-		boost::scoped_ptr<boost::thread>	logicThread;
-		boost::scoped_ptr<boost::thread>	scriptThread;
+		boost::thread_group					threadGroup;
 
-		bool								shutdownCalled;
+		boost::atomic<bool>					shutdownCalled;
 
 		std::queue<std::string>				scriptCmdQueue;
 		boost::mutex						scriptQueueMutex;
-		boost::mutex						scriptProcessMutex;
+		boost::condition_variable			scriptConditionVar;
 
 		EngineImpl() :
 			graphic(new GraphicManager),
@@ -49,16 +48,6 @@ namespace fairytale { namespace engine {
 			physics(new PhysicsWorld),
 			script(new chaiscript::ChaiScript)
 		{}
-
-		~EngineImpl()
-		{
-			if(physicsThread->joinable())
-				physicsThread->join();
-			//if(logicThread->joinable())
-			//	logicThread->join();
-			if(scriptThread->joinable())
-				scriptThread->join();
-		}
 
 		void windowResized(Ogre::RenderWindow* rw)
 		{
@@ -82,11 +71,13 @@ namespace fairytale { namespace engine {
 	{
 		_mImpl->shutdownCalled = false;
 
-		_mImpl->physicsThread.reset(new boost::thread(
-			boost::bind(&PhysicsWorld::startPhysicsSimulation, _mImpl->physics.get())));
+		auto phyThread = _mImpl->threadGroup.create_thread(
+			boost::bind(&PhysicsWorld::startPhysicsSimulation, _mImpl->physics.get()));
+
+		auto scriptThread = _mImpl->threadGroup.create_thread(
+			boost::bind(&Engine::_processScript, this));
+
 		//_mImpl->logicThread.reset(new boost::thread());
-		_mImpl->scriptThread.reset(new boost::thread(
-			boost::bind(&Engine::_processScript, this)));
 
 		while(!_mImpl->shutdownCalled)
 		{
@@ -95,7 +86,8 @@ namespace fairytale { namespace engine {
 		}
 
 		_mImpl->physics->stopPhysicsSimulation();
-		_mImpl->scriptProcessMutex.unlock();
+		_mImpl->threadGroup.remove_thread(phyThread);
+		_mImpl->threadGroup.remove_thread(scriptThread);
 	}
 
 	void Engine::appendGraphicManipulation(const boost::function<void()>& operate)
@@ -125,25 +117,25 @@ namespace fairytale { namespace engine {
 
 	void Engine::appendScriptCommand(const std::string& cmdLine)
 	{
-		boost::lock_guard<boost::mutex>(_mImpl->scriptQueueMutex);
+		boost::mutex::scoped_lock lock(_mImpl->scriptQueueMutex);
 		_mImpl->scriptCmdQueue.push(cmdLine);
-		_mImpl->scriptProcessMutex.unlock();
+		lock.unlock();
+		_mImpl->scriptConditionVar.notify_all();
 	}
 
 	void Engine::_processScript()
 	{
 		while(!_mImpl->shutdownCalled)
 		{
-			{
-				boost::lock_guard<boost::mutex>(_mImpl->scriptQueueMutex);
-				while(!_mImpl->scriptCmdQueue.empty())
-				{
-					_mImpl->script->eval(_mImpl->scriptCmdQueue.front());
-					_mImpl->scriptCmdQueue.pop();
-				}
-			}
+			boost::mutex::scoped_lock lock(_mImpl->scriptQueueMutex);
 
-			_mImpl->scriptProcessMutex.lock();
+			_mImpl->scriptConditionVar.wait(lock);
+
+			while(!_mImpl->scriptCmdQueue.empty())
+			{
+				_mImpl->script->eval(_mImpl->scriptCmdQueue.front());
+				_mImpl->scriptCmdQueue.pop();
+			}
 		}
 	}
 

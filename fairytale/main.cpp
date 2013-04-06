@@ -28,7 +28,6 @@ using namespace chaiscript;
 using namespace Ogre;
 
 boost::scoped_ptr<engine::Engine> gameEngine(new engine::Engine);
-boost::scoped_ptr<boost::thread> inputThread;
 
 void waitForUserInput()
 {
@@ -148,8 +147,33 @@ namespace fairytale
 
 boost::scoped_ptr<VolumeTerrainTest> vtt;
 
+void threadTest()
+{
+	for(int i = 0; i < 10000; ++i)
+	{
+		boost::shared_ptr<engine::InputManager::KeyBinding> bind = gameEngine->getInputManager()->registerKeyBinding(OIS::KC_SYSRQ, engine::InputManager::KeyState::DOWN,
+			boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::GraphicManager::takeScreenshot, gameEngine->getGraphicManager())));
+		gameEngine->getInputManager()->unregisterKeyBinding(bind);
+	}
+}
+
+void delayTest()
+{
+	for(int i = 0; i < 10000; ++i)
+	{
+		gameEngine->getGraphicManager()->appendEngineManipulation([]() {
+			std::cout << "reached." << std::endl;
+		});
+		std::cout << "added." << std::endl;
+	}
+}
+
 int main()
 {
+	boost::thread_group threads;
+	
+	threads.create_thread(&waitForUserInput);
+
 	registerScript(gameEngine->getScript());
 
 	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_SYSRQ, engine::InputManager::KeyState::DOWN,
@@ -161,6 +185,13 @@ int main()
 	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_F10, engine::InputManager::KeyState::DOWN,
 		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::Engine::appendGraphicManipulation, gameEngine.get(),
 		[]() { vtt.reset(new VolumeTerrainTest); })));
+
+	threads.create_thread(&threadTest);
+	threads.create_thread(&threadTest);
+
+	threads.create_thread(&delayTest);
+	threads.create_thread(&delayTest);
+	threads.create_thread(&delayTest);
 
 	try
 	{

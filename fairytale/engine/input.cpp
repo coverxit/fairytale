@@ -46,7 +46,7 @@ namespace fairytale { namespace engine {
 
 		boost::mutex keyBindingMutex, keyListenerMutex, mouseListenerMutex, messagePumpMutex;
 
-		boost::thread_group messageProcessThreads;
+		// boost::thread_group messageProcessThreads;
 
 		InputManagerImpl() : inputMgr(0), keyboard(0), mouse(0) {}
 		~InputManagerImpl()
@@ -59,7 +59,7 @@ namespace fairytale { namespace engine {
 		bool keyPressed(const OIS::KeyEvent& evt)
 		{
 			{
-				boost::lock_guard<boost::mutex>(this->keyBindingMutex);
+				boost::mutex::scoped_lock lock(keyBindingMutex);
 
 				auto possibleBindings(keyBindings.find(evt.key));
 				if(possibleBindings != keyBindings.end())
@@ -84,7 +84,7 @@ namespace fairytale { namespace engine {
 			}
 
 			{
-				boost::lock_guard<boost::mutex>(this->keyListenerMutex);
+				boost::mutex::scoped_lock lock(keyListenerMutex);
 
 				for(auto iter(keyListeners.begin()); iter != keyListeners.end(); ++iter)
 					iter->second->keyPressed(evt);
@@ -96,7 +96,7 @@ namespace fairytale { namespace engine {
 		bool keyReleased(const OIS::KeyEvent& evt)
 		{
 			{
-				boost::lock_guard<boost::mutex>(this->keyBindingMutex);
+				boost::mutex::scoped_lock lock(keyBindingMutex);
 
 				auto possibleBindings(keyBindings.find(evt.key));
 				if(possibleBindings != keyBindings.end())
@@ -121,7 +121,7 @@ namespace fairytale { namespace engine {
 			}
 
 			{
-				boost::lock_guard<boost::mutex>(this->keyListenerMutex);
+				boost::mutex::scoped_lock lock(keyListenerMutex);
 
 				for(auto iter(keyListeners.begin()); iter != keyListeners.end(); ++iter)
 					iter->second->keyReleased(evt);
@@ -132,7 +132,7 @@ namespace fairytale { namespace engine {
 
 		bool mouseMoved(const OIS::MouseEvent& evt)
 		{
-			boost::lock_guard<boost::mutex>(this->mouseListenerMutex);
+			boost::mutex::scoped_lock lock(mouseListenerMutex);
 
 			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
 			{
@@ -144,7 +144,7 @@ namespace fairytale { namespace engine {
 
 		bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 		{
-			boost::lock_guard<boost::mutex>(this->mouseListenerMutex);
+			boost::mutex::scoped_lock lock(mouseListenerMutex);
 
 			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
 			{
@@ -156,7 +156,7 @@ namespace fairytale { namespace engine {
 
 		bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
 		{
-			boost::lock_guard<boost::mutex>(this->mouseListenerMutex);
+			boost::mutex::scoped_lock lock(mouseListenerMutex);
 
 			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
 			{
@@ -208,7 +208,7 @@ namespace fairytale { namespace engine {
 		bindingId->bindingId = boost::uuids::random_generator()();
 
 		{
-			boost::lock_guard<boost::mutex>(_mImpl->keyBindingMutex);
+			boost::mutex::scoped_lock lock(_mImpl->keyBindingMutex);
 
 			_mImpl->keyBindings[keyCode].insert(std::make_pair(bindingId->bindingId, newBinding));
 		}
@@ -218,7 +218,7 @@ namespace fairytale { namespace engine {
 
 	bool InputManager::unregisterKeyBinding(const boost::shared_ptr<KeyBinding>& bindingInfo)
 	{
-		boost::lock_guard<boost::mutex>(_mImpl->keyBindingMutex);
+		boost::mutex::scoped_lock lock(_mImpl->keyBindingMutex);
 
 		auto keyIter(_mImpl->keyBindings.find(bindingInfo->keyCode));
 		if(keyIter == _mImpl->keyBindings.end())
@@ -235,28 +235,28 @@ namespace fairytale { namespace engine {
 
 	bool InputManager::registerKeyListener(const boost::shared_ptr<OIS::KeyListener>& listener)
 	{
-		boost::lock_guard<boost::mutex>(_mImpl->keyListenerMutex);
+		boost::mutex::scoped_lock lock(_mImpl->keyListenerMutex);
 
 		return _mImpl->keyListeners.insert(std::make_pair((size_t)listener.get(), listener)).second;
 	}
 
 	bool InputManager::unregisterKeyListener(const boost::shared_ptr<OIS::MouseListener>& listener)
 	{
-		boost::lock_guard<boost::mutex>(_mImpl->keyListenerMutex);
+		boost::mutex::scoped_lock lock(_mImpl->keyListenerMutex);
 
 		return _mImpl->keyListeners.erase((size_t)listener.get()) != 0;
 	}
 
 	bool InputManager::registerMouseListener(const boost::shared_ptr<OIS::MouseListener>& listener)
 	{
-		boost::lock_guard<boost::mutex>(_mImpl->mouseListenerMutex);
+		boost::mutex::scoped_lock lock(_mImpl->mouseListenerMutex);
 
 		return _mImpl->mouseListeners.insert(std::make_pair((size_t)listener.get(), listener)).second;
 	}
 
 	bool InputManager::unregisterMouseListener(const boost::shared_ptr<OIS::MouseListener>& listener)
 	{
-		boost::lock_guard<boost::mutex>(_mImpl->mouseListenerMutex);
+		boost::mutex::scoped_lock lock(_mImpl->mouseListenerMutex);
 
 		return _mImpl->mouseListeners.erase((size_t)listener.get()) != 0;
 	}
@@ -264,7 +264,7 @@ namespace fairytale { namespace engine {
 	void InputManager::processOneInputFrame()
 	{
 		{
-			boost::lock_guard<boost::mutex>(_mImpl->messagePumpMutex);
+			boost::mutex::scoped_lock lock(_mImpl->messagePumpMutex);
 
 			Ogre::WindowEventUtilities::messagePump();
 		}

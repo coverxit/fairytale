@@ -60,7 +60,7 @@ namespace fairytale { namespace engine {
 	void GraphicManager::renderOneFrame()
 	{
 		{
-			boost::lock_guard<boost::mutex>(_mImpl->operationQueueMutex);
+			boost::mutex::scoped_lock lock(_mImpl->operationQueueMutex);
 
 			while(!_mImpl->operationsNextFrame.empty())
 			{
@@ -74,7 +74,7 @@ namespace fairytale { namespace engine {
 
 	void GraphicManager::appendEngineManipulation(const boost::function<void()>& operate)
 	{
-		boost::lock_guard<boost::mutex>(_mImpl->operationQueueMutex);
+		boost::mutex::scoped_lock lock(_mImpl->operationQueueMutex);
 		_mImpl->operationsNextFrame.push(operate);
 	}
 
