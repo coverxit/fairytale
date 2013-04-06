@@ -17,9 +17,9 @@
 #include "pch.h"
 
 #include <boost/thread.hpp>
-#include <boost/date_time.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/atomic.hpp>
+#include <chrono>
 
 #include "physics.h"
 #include "btogre-fork/BtOgreExtras.h"
@@ -37,7 +37,7 @@ namespace fairytale { namespace engine {
 		boost::scoped_ptr<btDynamicsWorld>						phyWorld;
 		boost::recursive_mutex									physicsMutex;
 		boost::atomic<bool>										shutdownCalled;
-		boost::posix_time::ptime								lastFrameTime;
+		std::chrono::system_clock::time_point					lastFrameTime;
 
 		PhysicsWorldImpl::PhysicsWorldImpl() :
 			broadPhase(new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024)),
@@ -46,7 +46,7 @@ namespace fairytale { namespace engine {
 			solver(new btSequentialImpulseConstraintSolver()),
 			phyWorld(new btDiscreteDynamicsWorld(dispatcher.get(), broadPhase.get(), solver.get(), collisionConfig.get())),
 			shutdownCalled(false),
-			lastFrameTime(boost::posix_time::microsec_clock::local_time())
+			lastFrameTime(std::chrono::high_resolution_clock::now())
 		{
 			phyWorld->setGravity(btVector3(0.0f ,-9.8f, 0.0f));
 		}
@@ -71,9 +71,11 @@ namespace fairytale { namespace engine {
 		{
 			boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
 			
-			boost::posix_time::time_duration diff = boost::posix_time::microsec_clock::local_time() - _mImpl->lastFrameTime;
-			_mImpl->lastFrameTime = boost::posix_time::microsec_clock::local_time();
-			_mImpl->phyWorld->stepSimulation((float)((double)diff.total_microseconds() / (double)1000.0));
+			auto now = std::chrono::high_resolution_clock::now();
+			// Unit is second.
+			double duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - _mImpl->lastFrameTime).count() / 1000.0;
+			_mImpl->lastFrameTime = now;
+			_mImpl->phyWorld->stepSimulation((btScalar)duration);
 		}
 	}
 
