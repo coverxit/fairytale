@@ -21,8 +21,12 @@
 #include "engine/engine.h"
 #include "engine/input.h"
 #include "engine/graphics.h"
+#include "engine/physics.h"
 
-using namespace std;
+#include "btogre-fork/BtOgreExtras.h"
+#include "btogre-fork/BtOgreGP.h"
+#include "btogre-fork/BtOgrePG.h"
+
 using namespace fairytale;
 using namespace chaiscript;
 using namespace Ogre;
@@ -49,7 +53,6 @@ void registerScript(chaiscript::ChaiScript* script)
 		.add(fun(boost::function<void()>(boost::bind(&engine::GraphicManager::takeScreenshot, gameEngine->getGraphicManager()))), "takeScreenshot")
 		;
 }
-
 
 //-------------------------------------------------------------------------
 
@@ -103,77 +106,96 @@ namespace fairytale
 	}
 }
 
-#include <Volume/OgreVolumeChunk.h>
-#include <Volume/OgreVolumeCSGSource.h>
-#include <Volume/OgreVolumeCacheSource.h>
-#include <Volume/OgreVolumeTextureSource.h>
-#include <Volume/OgreVolumeMeshBuilder.h>
-#include <Volume/OgreVolumeSimplexNoise.h>
-
-using namespace Ogre;
-using namespace Ogre::Volume;
-
-namespace fairytale
+class BtOgreTestApplication : public GameScene
 {
-	class VolumeTerrainTest
+protected:
+
+
+	Ogre::SceneNode *mNinjaNode;
+	Ogre::Entity *mNinjaEntity;
+	btRigidBody *mNinjaBody;
+	btCollisionShape *mNinjaShape;
+
+	Ogre::Entity *mGroundEntity;
+	btRigidBody *mGroundBody;
+	btBvhTriangleMeshShape *mGroundShape;
+
+public:
+	~BtOgreTestApplication()
 	{
-	public:
-		boost::shared_ptr<Chunk> mVolumeRoot;
-		boost::shared_ptr<GameScene> scene;
-		VolumeTerrainTest()
-		{
-			scene.reset(new GameScene());
+		//Free rigid bodies
+		gameEngine->getPhysicsWorld()->removeRigidBody(mNinjaBody);
+		delete mNinjaBody->getMotionState();
+		delete mNinjaBody;
+		delete mNinjaShape;
 
-			// Skydome
-			scene->defaultSceneMgr->setSkyDome(true, "Examples/CloudySky", 5, 8);
-
-			// Light
-			Light* directionalLight0 = scene->defaultSceneMgr->createLight("directionalLight0");
-			directionalLight0->setType(Light::LT_DIRECTIONAL);
-			directionalLight0->setDirection(Vector3((Real)1, (Real)-1, (Real)1));
-			directionalLight0->setDiffuseColour((Real)1, (Real)0.98, (Real)0.73);
-			directionalLight0->setSpecularColour((Real)0.1, (Real)0.1, (Real)0.1);
-
-			// Volume
-			mVolumeRoot.reset(new Chunk());
-			SceneNode *volumeRootNode = scene->defaultSceneMgr->getRootSceneNode()->createChildSceneNode("VolumeParent");
-			mVolumeRoot->load(volumeRootNode, scene->defaultSceneMgr, "volumeTerrain.cfg");
-
-			scene->defaultCamera->setPosition((Real)(2560 - 384), (Real)2000, (Real)(2560 - 384));
-			scene->defaultCamera->lookAt((Real)0, (Real)100, (Real)0);
-		}
-	};
-}
-
-boost::scoped_ptr<VolumeTerrainTest> vtt;
-
-void threadTest()
-{
-	for(int i = 0; i < 10000; ++i)
-	{
-		boost::shared_ptr<engine::InputManager::KeyBinding> bind = gameEngine->getInputManager()->registerKeyBinding(OIS::KC_SYSRQ, engine::InputManager::KeyState::DOWN,
-			boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::GraphicManager::takeScreenshot, gameEngine->getGraphicManager())));
-		gameEngine->getInputManager()->unregisterKeyBinding(bind);
+		gameEngine->getPhysicsWorld()->removeRigidBody(mGroundBody);
+		delete mGroundBody->getMotionState();
+		delete mGroundBody;
+		delete mGroundShape->getMeshInterface();
+		delete mGroundShape;
 	}
-}
 
-void delayTest()
-{
-	for(int i = 0; i < 10000; ++i)
+	BtOgreTestApplication()
 	{
-		gameEngine->getGraphicManager()->appendEngineManipulation([]() {
-			std::cout << "reached." << std::endl;
-		});
-		std::cout << "added." << std::endl;
+		//----------------------------------------------------------
+		// Ninja!
+		//----------------------------------------------------------
+
+		Vector3 pos = Vector3(0,10,0);
+		Quaternion rot = Quaternion::IDENTITY;
+
+		//Create Ogre stuff.
+
+		mNinjaEntity = defaultSceneMgr->createEntity("ninjaEntity", "Player.mesh");
+		mNinjaNode = defaultSceneMgr->getRootSceneNode()->createChildSceneNode("ninjaSceneNode", pos, rot);
+		mNinjaNode->attachObject(mNinjaEntity);
+
+		//Create shape.
+		BtOgre::StaticMeshToShapeConverter converter(mNinjaEntity);
+		mNinjaShape = converter.createSphere();
+
+		//Calculate inertia.
+		btScalar mass = 5;
+		btVector3 inertia;
+		mNinjaShape->calculateLocalInertia(mass, inertia);
+
+		//Create BtOgre MotionState (connects Ogre and Bullet).
+		BtOgre::RigidBodyState *ninjaState = new BtOgre::RigidBodyState(gameEngine.get(), mNinjaNode);
+
+		//Create the Body.
+		mNinjaBody = new btRigidBody(mass, ninjaState, mNinjaShape, inertia);
+		gameEngine->getPhysicsWorld()->addRigidBody(mNinjaBody);
+
+		//----------------------------------------------------------
+		// Ground!
+		//----------------------------------------------------------
+
+		//Create Ogre stuff.
+		//MeshManager::getSingleton().createPlane("groundPlane", "General", Plane(Vector3::UNIT_Y, 0), 100, 100, 
+		//10, 10, true, 1, 5, 5, Vector3::UNIT_Z);
+		mGroundEntity = defaultSceneMgr->createEntity("groundEntity", "TestLevel_b0.mesh");
+		//mGroundEntity->setMaterialName("Examples/Rockwall");
+		defaultSceneMgr->getRootSceneNode()->createChildSceneNode("groundNode")->attachObject(mGroundEntity);
+
+		//Create the ground shape.
+		BtOgre::StaticMeshToShapeConverter converter2(mGroundEntity);
+		mGroundShape = converter2.createTrimesh();
+
+		//Create MotionState (no need for BtOgre here, you can use it if you want to though).
+		btDefaultMotionState* groundState = new btDefaultMotionState(
+			btTransform(btQuaternion(0,0,0,1),btVector3(0,0,0)));
+
+		//Create the Body.
+		mGroundBody = new btRigidBody(0, groundState, mGroundShape, btVector3(0,0,0));
+		gameEngine->getPhysicsWorld()->addRigidBody(mGroundBody);
 	}
-}
+};
+
+boost::scoped_ptr<BtOgreTestApplication> vtt;
 
 int main()
 {
-	boost::thread_group threads;
-	
-	threads.create_thread(&waitForUserInput);
-
 	registerScript(gameEngine->getScript());
 
 	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_SYSRQ, engine::InputManager::KeyState::DOWN,
@@ -184,14 +206,7 @@ int main()
 
 	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_F10, engine::InputManager::KeyState::DOWN,
 		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::Engine::appendGraphicManipulation, gameEngine.get(),
-		[]() { vtt.reset(new VolumeTerrainTest); })));
-
-	threads.create_thread(&threadTest);
-	threads.create_thread(&threadTest);
-
-	threads.create_thread(&delayTest);
-	threads.create_thread(&delayTest);
-	threads.create_thread(&delayTest);
+		[]() { vtt.reset(new BtOgreTestApplication); })));
 
 	try
 	{

@@ -35,7 +35,7 @@ namespace fairytale { namespace engine {
 		boost::scoped_ptr<btCollisionDispatcher>				dispatcher;
 		boost::scoped_ptr<btSequentialImpulseConstraintSolver>	solver;
 		boost::scoped_ptr<btDynamicsWorld>						phyWorld;
-		boost::mutex											physicsMutex;
+		boost::recursive_mutex									physicsMutex;
 		boost::atomic<bool>										shutdownCalled;
 		boost::posix_time::ptime								lastFrameTime;
 
@@ -61,7 +61,7 @@ namespace fairytale { namespace engine {
 
 	void PhysicsWorld::setGravity(float x, float y, float z)
 	{
-		boost::mutex::scoped_lock lock(_mImpl->physicsMutex);
+		boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
 		_mImpl->phyWorld->setGravity(btVector3(x, y, z));
 	}
 
@@ -69,7 +69,7 @@ namespace fairytale { namespace engine {
 	{
 		while(!_mImpl->shutdownCalled)
 		{
-			boost::mutex::scoped_lock lock(_mImpl->physicsMutex);
+			boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
 			
 			boost::posix_time::time_duration diff = boost::posix_time::microsec_clock::local_time() - _mImpl->lastFrameTime;
 			_mImpl->lastFrameTime = boost::posix_time::microsec_clock::local_time();
@@ -84,13 +84,13 @@ namespace fairytale { namespace engine {
 
 	void PhysicsWorld::addRigidBody(btRigidBody* body)
 	{
-		boost::mutex::scoped_lock lock(_mImpl->physicsMutex);
+		boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
 		_mImpl->phyWorld->addRigidBody(body);
 	}
 
 	void PhysicsWorld::removeRigidBody(btRigidBody* body)
 	{
-		boost::mutex::scoped_lock lock(_mImpl->physicsMutex);
+		boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
 		_mImpl->phyWorld->removeRigidBody(body);
 	}
 

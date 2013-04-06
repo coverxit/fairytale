@@ -47,11 +47,11 @@ class RigidBodyState : public btMotionState
         {
         }
 
-        RigidBodyState(Ogre::SceneNode *node)
+        RigidBodyState(fairytale::engine::Engine* eng, Ogre::SceneNode *node)
             : mTransform(((node != NULL) ? BtOgre::Convert::toBullet(node->getOrientation()) : btQuaternion(0,0,0,1)),
                          ((node != NULL) ? BtOgre::Convert::toBullet(node->getPosition())    : btVector3(0,0,0))),
               mCenterOfMassOffset(btTransform::getIdentity()),
-              mNode(node)
+              mNode(node), mEngine(eng)
         {
         }
 
