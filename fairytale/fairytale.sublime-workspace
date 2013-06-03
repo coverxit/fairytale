@@ -1,0 +1,296 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"_",
+				"_mStart"
+			],
+			[
+				"__",
+				"__FAIRYTALE_UNITTEST__"
+			],
+			[
+				"__FAI",
+				"__FAIRYTALE_UNITTEST__"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "logic/structure/element.h",
+			"settings":
+			{
+				"buffer_size": 1457,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "logic/event/event.h",
+			"settings":
+			{
+				"buffer_size": 4130,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Fairytale",
+	"command_palette":
+	{
+		"height": 380.0,
+		"selected_items":
+		[
+			[
+				"pack",
+				"Package Control: Remove Package"
+			],
+			[
+				"c++",
+				"Set Syntax: C++"
+			],
+			[
+				"git co",
+				"Git: Commit"
+			],
+			[
+				"unfold",
+				"Code Folding: Unfold All"
+			],
+			[
+				"fold",
+				"Code Folding: Unfold All"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 118.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/akira/Projects/fairytale/fairytale/logic/event/event.h",
+		"/home/akira/Projects/fairytale/fairytale/unittest/ut_logic_event_event.cpp",
+		"/home/akira/Projects/fairytale/fairytale/fairytale.sublime-project",
+		"/home/akira/Projects/fairytale/fairytale/unittest/ut_logic_event_event",
+		"/home/akira/Projects/fairytale/fairytale/unittest/unittest.h",
+		"/usr/include/c++/4.8/ext/new_allocator.h",
+		"/home/akira/Projects/fairytale/fairytale/logic/event/event.h.bak",
+		"/home/akira/.config/sublime-text-2/Packages/Default/Default (Linux).sublime-keymap",
+		"/home/akira/.config/sublime-text-2/Packages/User/Default (Linux).sublime-keymap",
+		"/home/akira/Projects/fairytale/fairytale/unittest/<command-line>",
+		"/home/akira/Projects/fairytale/fairytale/application/os/logging/logging.h",
+		"/home/akira/Projects/fairytale/fairytale/logic/event/hello.cpp",
+		"/home/akira/Projects/fairytale/fairytale/logic/event/hello",
+		"/media/Projects/fairytale/fairytale/fairytale.sublime-project",
+		"/media/Projects/fairytale/fairytale/logic/event/event",
+		"/media/Projects/fairytale/fairytale/logic/event/event.h",
+		"/home/akira/.config/sublime-text-2/Packages/User/C++ Fairytale Unittest.sublime-build",
+		"/home/akira/Projects/fairytale/fairytale/fairytale/logic/event/event.h",
+		"/home/akira/.config/sublime-text-2/Packages/User/C++FairytaleUnittest.sublime-build",
+		"/media/Projects/fairytale/fairytale/pch.cpp",
+		"/media/Projects/fairytale/fairytale.sublime-project",
+		"/media/Projects/fairytale/fairytale/logic/structure/element.h",
+		"/media/Projects/fairytale/fairytale.sublime-workspace",
+		"/home/akira/.config/sublime-text-2/Packages/User/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 36.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"	",
+			"run",
+			"Eventhandler",
+			"const",
+			"LOG",
+			"TestClass",
+			"\"::",
+			"sizeof(*this) << ",
+			"typeid(*this).name()",
+			"&&"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"    ",
+			"Element",
+			"\"TestClass::",
+			"",
+			"sizeof(*this)"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "logic/structure/element.h",
+					"settings":
+					{
+						"buffer_size": 1457,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								599,
+								599
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 1,
+					"file": "logic/event/event.h",
+					"settings":
+					{
+						"buffer_size": 4130,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								286,
+								286
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1290.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 30.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.362254025045,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 166.0
+	},
+	"output.git":
+	{
+		"height": 94.0
+	},
+	"replace":
+	{
+		"height": 66.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 243.0,
+	"status_bar_visible": true
+}

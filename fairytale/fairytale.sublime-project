@@ -1,0 +1,23 @@
+{
+    "folders":
+    [
+        {
+            "path": "/home/akira/Projects/fairytale/fairytale"
+        }
+    ],
+    "settings":
+    {
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true
+    },
+    "build_systems":
+    [
+        {
+            "name": "Fairytale",
+            "cmd": ["g++-4.8", "-Wall", "-g", "${file}", "-o", "${file_path}/${file_base_name}", "-std=c++11", "-I/home/akira/Projects/fairytale/fairytale", "-lpthread"],
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "working_dir": "/home/akira/Projects/fairytale/fairytale",
+            "selector": "source.c, source.c++"
+        }
+    ]
+}

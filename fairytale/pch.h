@@ -19,6 +19,7 @@
 
 #include <OGRE/Ogre.h>
 #include <OIS/OIS.h>
+#include <bullet/btBulletDynamicsCommon.h>
 #include <chaiscript/chaiscript.hpp>
 
 #endif

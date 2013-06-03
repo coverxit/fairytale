@@ -16,10 +16,9 @@
 
 #include "pch.h"
 
-#include <boost/thread.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/atomic.hpp>
-#include <chrono>
+#include <boost/shared_ptr.hpp>
+#include <boost/lockfree/queue.hpp>
 
 #include "physics.h"
 #include "btogre-fork/BtOgreExtras.h"
@@ -28,6 +27,11 @@
 
 namespace fairytale { namespace engine {
 
+	class btDiscreteDynamicsWorldDelayed : public btDiscreteDynamicsWorld
+	{
+
+	};
+
 	struct PhysicsWorld::PhysicsWorldImpl
 	{
 		boost::scoped_ptr<btAxisSweep3>							broadPhase;
@@ -35,18 +39,15 @@ namespace fairytale { namespace engine {
 		boost::scoped_ptr<btCollisionDispatcher>				dispatcher;
 		boost::scoped_ptr<btSequentialImpulseConstraintSolver>	solver;
 		boost::scoped_ptr<btDynamicsWorld>						phyWorld;
-		boost::recursive_mutex									physicsMutex;
-		boost::atomic<bool>										shutdownCalled;
-		std::chrono::system_clock::time_point					lastFrameTime;
 
+		boost::lockfree::queue<boost::shared_ptr<boost::function<void()>>>	postedOperations;
+		
 		PhysicsWorldImpl::PhysicsWorldImpl() :
 			broadPhase(new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024)),
 			collisionConfig(new btDefaultCollisionConfiguration()),
 			dispatcher(new btCollisionDispatcher(collisionConfig.get())),
 			solver(new btSequentialImpulseConstraintSolver()),
-			phyWorld(new btDiscreteDynamicsWorld(dispatcher.get(), broadPhase.get(), solver.get(), collisionConfig.get())),
-			shutdownCalled(false),
-			lastFrameTime(std::chrono::high_resolution_clock::now())
+			phyWorld(new btDiscreteDynamicsWorld(dispatcher.get(), broadPhase.get(), solver.get(), collisionConfig.get()))
 		{
 			phyWorld->setGravity(btVector3(0.0f ,-9.8f, 0.0f));
 		}
@@ -59,41 +60,24 @@ namespace fairytale { namespace engine {
 		delete _mImpl;
 	}
 
-	void PhysicsWorld::setGravity(float x, float y, float z)
+	void PhysicsWorld::calculateOnePhysicsFrame(float timeSinceLastFrame)
 	{
-		boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
-		_mImpl->phyWorld->setGravity(btVector3(x, y, z));
+		boost::shared_ptr<boost::function<void()>> singleOperation;
+
+		while(_mImpl->postedOperations.pop(singleOperation))
+			(*singleOperation.get())();
+
+		_mImpl->phyWorld->stepSimulation((btScalar)timeSinceLastFrame);
 	}
 
-	void PhysicsWorld::startPhysicsSimulation()
+	btDynamicsWorld* PhysicsWorld::getPhysicsWorld()
 	{
-		while(!_mImpl->shutdownCalled)
-		{
-			boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
-			
-			auto now = std::chrono::high_resolution_clock::now();
-			// Unit is second.
-			double duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - _mImpl->lastFrameTime).count() / 1000.0;
-			_mImpl->lastFrameTime = now;
-			_mImpl->phyWorld->stepSimulation((btScalar)duration);
-		}
+		return _mImpl->phyWorld.get();
 	}
 
-	void PhysicsWorld::stopPhysicsSimulation()
+	void PhysicsWorld::postOperation(const boost::function<void()>& operation)
 	{
-		_mImpl->shutdownCalled = true;
-	}
-
-	void PhysicsWorld::addRigidBody(btRigidBody* body)
-	{
-		boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
-		_mImpl->phyWorld->addRigidBody(body);
-	}
-
-	void PhysicsWorld::removeRigidBody(btRigidBody* body)
-	{
-		boost::recursive_mutex::scoped_try_lock lock(_mImpl->physicsMutex);
-		_mImpl->phyWorld->removeRigidBody(body);
+		_mImpl->postedOperations.push(boost::shared_ptr<boost::function<void()>>(new boost::function<void()>(operation)));
 	}
 
 } }

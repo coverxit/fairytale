@@ -562,7 +562,7 @@ namespace BtOgre {
 	//------------------------------------------------------------------------------------------------
 	void AnimatedMeshToShapeConverter::addEntity(Entity *entity,const Matrix4 &transform)
 	{
-		mEngine->appendGraphicManipulation([this, &entity, &transform]() {
+		mEngine->postGraphicOperation([this, &entity, &transform]() {
 
 			// Each entity added need to reset size and radius
 			// next time getRadius and getSize are asked, they're computed.

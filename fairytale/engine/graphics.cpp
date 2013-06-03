@@ -18,22 +18,20 @@
 
 //#include <Ogre/Overlay/OgreOverlaySystem.h>
 
-#include <queue>
-#include <boost/thread.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include "graphics.h"
-#include "../util/file.h"
+#include "util/waitfree-queue.h"
+#include "util/file.h"
 
 namespace fairytale { namespace engine {
 
 	struct GraphicManager::GraphicManagerImpl
 	{
-		boost::scoped_ptr<Ogre::Root>		ogre;
-		Ogre::RenderWindow*					window;
-		Ogre::Viewport*						viewport;
-		std::queue<boost::function<void()>>	operationsNextFrame;
-		boost::mutex						operationQueueMutex;
+		boost::scoped_ptr<Ogre::Root>			ogre;
+		Ogre::RenderWindow*						window;
+		Ogre::Viewport*							viewport;
+		waitfree_queue<boost::function<void()>>	postedOperations;
 	};
 
 	GraphicManager::GraphicManager() : _mImpl(new GraphicManagerImpl)
@@ -59,23 +57,17 @@ namespace fairytale { namespace engine {
 
 	void GraphicManager::renderOneFrame()
 	{
-		{
-			boost::mutex::scoped_lock lock(_mImpl->operationQueueMutex);
+		boost::shared_ptr<boost::function<void()>> singleOperation;
 
-			while(!_mImpl->operationsNextFrame.empty())
-			{
-				_mImpl->operationsNextFrame.front()();
-				_mImpl->operationsNextFrame.pop();
-			}
-		}
+		while(_mImpl->postedOperations.pop(singleOperation))
+			(*singleOperation.get())();
 		
 		_mImpl->ogre->renderOneFrame();
 	}
 
-	void GraphicManager::appendEngineManipulation(const boost::function<void()>& operate)
+	void GraphicManager::postOperation(const boost::function<void()>& operation)
 	{
-		boost::mutex::scoped_lock lock(_mImpl->operationQueueMutex);
-		_mImpl->operationsNextFrame.push(operate);
+		_mImpl->postedOperations.push(boost::shared_ptr<boost::function<void()>>(new boost::function<void()>(operation)));
 	}
 
 	void GraphicManager::addFrameListener(Ogre::FrameListener* listener)
@@ -110,7 +102,7 @@ namespace fairytale { namespace engine {
 
 			processFilesInDirectory(grouppath, [&groupdirname](const std::string& sourcepath) {
 				Ogre::ResourceGroupManager::getSingleton().addResourceLocation(sourcepath, "Zip", groupdirname);
-			}, true, ".*\.zip");
+			}, true, ".*[.]zip");
 
 			Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup(groupdirname);
 		}, DirectoryProcessMode::ONLY_DIRECTORY, false);
@@ -125,7 +117,7 @@ namespace fairytale { namespace engine {
 	{
 		util::processFilesInDirectory(dir, [this](const std::string& plugin) {
 			_mImpl->ogre->loadPlugin(plugin);
-		}, true, ".*\.dll");
+		}, true, ".*[.]dll");
 	}
 
 	void GraphicManager::takeScreenshot()

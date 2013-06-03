@@ -45,10 +45,11 @@ namespace fairytale { namespace engine {
 
 		void start();
 		void stop();
-		void appendGraphicManipulation(const boost::function<void()>& operate);
-		void appendScriptCommand(const std::string& cmdLine);
-		// DO NOT call this unless YOU are a thread.
-		void _processScript();
+
+		void postScriptCommand(const std::string& cmdLine);
+		void postGraphicOperation(const boost::function<void()>& opreation);
+		void postPhysicsOperation(const boost::function<void()>& opreation);
+
 		InputManager* getInputManager();
 		GraphicManager* getGraphicManager();
 		PhysicsWorld* getPhysicsWorld();

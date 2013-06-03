@@ -130,41 +130,6 @@ namespace fairytale { namespace engine {
 			return true;
 		}
 
-		bool mouseMoved(const OIS::MouseEvent& evt)
-		{
-			boost::mutex::scoped_lock lock(mouseListenerMutex);
-
-			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
-			{
-				iter->second->mouseMoved(evt);
-			}
-
-			return true;
-		}
-
-		bool mousePressed(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
-		{
-			boost::mutex::scoped_lock lock(mouseListenerMutex);
-
-			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
-			{
-				iter->second->mousePressed(evt, id);
-			}
-
-			return true;
-		}
-
-		bool mouseReleased(const OIS::MouseEvent& evt, OIS::MouseButtonID id)
-		{
-			boost::mutex::scoped_lock lock(mouseListenerMutex);
-
-			for(auto iter(mouseListeners.begin()); iter != mouseListeners.end(); ++iter)
-			{
-				iter->second->mouseReleased(evt, id);
-			}
-
-			return true;
-		}
 	};
 	
 	InputManager::InputManager(size_t windowHandle) : _mImpl(new InputManagerImpl)

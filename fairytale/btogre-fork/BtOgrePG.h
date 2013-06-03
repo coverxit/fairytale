@@ -70,8 +70,8 @@ class RigidBodyState : public btMotionState
 
             btQuaternion rot = transform.getRotation();
             btVector3 pos = transform.getOrigin();
-            mEngine->appendGraphicManipulation(boost::bind(&Ogre::SceneNode::setOrientation, mNode, rot.w(), rot.x(), rot.y(), rot.z()));
-            mEngine->appendGraphicManipulation(boost::bind(&Ogre::SceneNode::setPosition, mNode, pos.x(), pos.y(), pos.z()));
+            mEngine->postGraphicOperation(boost::bind(&Ogre::SceneNode::setOrientation, mNode, rot.w(), rot.x(), rot.y(), rot.z()));
+            mEngine->postGraphicOperation(boost::bind(&Ogre::SceneNode::setPosition, mNode, pos.x(), pos.y(), pos.z()));
         }
 
         void setNode(Ogre::SceneNode *node)

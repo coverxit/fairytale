@@ -17,7 +17,10 @@
 #ifndef __FAIRYTALE_GAME_PHYSICS_H__
 #define __FAIRYTALE_GAME_PHYSICS_H__
 
+#include <boost/function.hpp>
+
 class btRigidBody;
+class btDynamicsWorld;
 
 namespace fairytale { namespace engine {
 
@@ -31,12 +34,9 @@ namespace fairytale { namespace engine {
 		PhysicsWorld();
 		~PhysicsWorld();
 
-		void setGravity(float x, float y, float z);
-		void startPhysicsSimulation();
-		void stopPhysicsSimulation();
 		void calculateOnePhysicsFrame(float timeSinceLastFrame);
-		void addRigidBody(btRigidBody* body);
-		void removeRigidBody(btRigidBody* body);
+
+		btDynamicsWorld* getPhysicsWorld();
 	};
 
 } }

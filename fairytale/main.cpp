@@ -81,8 +81,8 @@ namespace fairytale
 		defaultSceneMgr = gameEngine->getGraphicManager()->getOgreRoot()->createSceneManager(Ogre::ST_GENERIC, "_default_scenemgr");
 		defaultSceneMgr->setAmbientLight(ColourValue(0.7,0.7,0.7));
 		defaultCamera = defaultSceneMgr->createCamera("PlayerCam");
-		defaultCamera->setFarClipDistance(10000);
-		defaultCamera->setNearClipDistance(0.05);
+		defaultCamera->setFarClipDistance(10000.0f);
+		defaultCamera->setNearClipDistance(0.05f);
 		defaultCamera->setPosition(Vector3(10,10,10));
 		defaultCamera->lookAt(Vector3::ZERO);
 		defaultCamera->setAspectRatio(gameEngine->getGraphicManager()->getViewportAspectRatio());
@@ -124,12 +124,12 @@ public:
 	~BtOgreTestApplication()
 	{
 		//Free rigid bodies
-		gameEngine->getPhysicsWorld()->removeRigidBody(mNinjaBody);
+		gameEngine->getPhysicsWorld()->getPhysicsWorld()->removeRigidBody(mNinjaBody);
 		delete mNinjaBody->getMotionState();
 		delete mNinjaBody;
 		delete mNinjaShape;
 
-		gameEngine->getPhysicsWorld()->removeRigidBody(mGroundBody);
+		gameEngine->getPhysicsWorld()->getPhysicsWorld()->removeRigidBody(mGroundBody);
 		delete mGroundBody->getMotionState();
 		delete mGroundBody;
 		delete mGroundShape->getMeshInterface();
@@ -165,7 +165,7 @@ public:
 
 		//Create the Body.
 		mNinjaBody = new btRigidBody(mass, ninjaState, mNinjaShape, inertia);
-		gameEngine->getPhysicsWorld()->addRigidBody(mNinjaBody);
+		gameEngine->getPhysicsWorld()->getPhysicsWorld()->addRigidBody(mNinjaBody);
 
 		//----------------------------------------------------------
 		// Ground!
@@ -188,7 +188,7 @@ public:
 
 		//Create the Body.
 		mGroundBody = new btRigidBody(0, groundState, mGroundShape, btVector3(0,0,0));
-		gameEngine->getPhysicsWorld()->addRigidBody(mGroundBody);
+		gameEngine->getPhysicsWorld()->getPhysicsWorld()->addRigidBody(mGroundBody);
 	}
 };
 
@@ -197,6 +197,7 @@ boost::scoped_ptr<BtOgreTestApplication> vtt;
 int main()
 {
 	registerScript(gameEngine->getScript());
+	boost::thread console(&waitForUserInput);
 
 	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_SYSRQ, engine::InputManager::KeyState::DOWN,
 		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::GraphicManager::takeScreenshot, gameEngine->getGraphicManager())));
@@ -205,7 +206,7 @@ int main()
 		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::Engine::stop, gameEngine.get())));
 
 	gameEngine->getInputManager()->registerKeyBinding(OIS::KC_F10, engine::InputManager::KeyState::DOWN,
-		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::Engine::appendGraphicManipulation, gameEngine.get(),
+		boost::function<void(const OIS::KeyEvent&)>(boost::bind(&engine::Engine::postGraphicOperation, gameEngine.get(),
 		[]() { vtt.reset(new BtOgreTestApplication); })));
 
 	try
@@ -220,9 +221,6 @@ int main()
 	catch(std::exception& e)
 	{
 		std::cout << e.what() << std::endl;
-	}
-	catch(...)
-	{
 	}
 
 	system("pause");

@@ -45,13 +45,14 @@ namespace fairytale { namespace engine {
 		~GraphicManager();
 
 		void renderOneFrame();
+
 		void addFrameListener(Ogre::FrameListener* listener);
 		void removeFrameListener(Ogre::FrameListener* listener);
 		size_t getRenderWindowHandle();
 		std::pair<int, int> getRenderWindowWidthAndHeight();
 		float getViewportAspectRatio();
 		// Thread-safe function. Append an operate to graphic system that will be done before rendering next frame.
-		void appendEngineManipulation(const boost::function<void()>& operate);
+		void postOperation(const boost::function<void()>& operation);
 		void addResourceLocation(const std::string& dir);
 		void takeScreenshot();
 		Ogre::Root* getOgreRoot();
