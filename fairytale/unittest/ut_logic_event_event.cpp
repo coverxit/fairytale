@@ -16,76 +16,51 @@
 
 #define __FAIRYTALE_UNITTEST__
 
-#include "unittest/unittest.h"
-#include "logic/event/event.h"
+#include "unittest/unittest.hpp"
+#include "logic/event/event.hpp"
 #include <vector>
 #include <thread>
- 
-namespace fairytale {
+#include <iostream>
 
-class Element
+using namespace fairytale;
+using namespace std;
+
+void callback(Event* evt, int num, fairytale::TestClass, std::string str)
 {
-public:
-    // Simple constructor
-    Element() { std::cout << "Element::Simple constructor" << std::endl; }
-    // Destructor
-    virtual ~Element() { std::cout << "Element::Destructor" << std::endl; }
-
-    // Copy constructor
-    Element(const Element& rv) { std::cout << "Element::Copy constructor" << std::endl; }
-    // Copy assignment operator
-    Element& operator=(const Element& other) { std::cout << "Element::Copy assignment operator" << std::endl; return *this; }
-
-    // Move constructor
-    Element(Element&& rvref) { std::cout << "Element::Move constructor" << std::endl; }
-    // Move assignment operator
-    Element& operator=(Element&& other) { std::cout << "Element::Move assignment operator" << std::endl; return *this; }
-
-};
-
+    cout << evt->getEventName() << endl;
+    cout << num << endl;
+    cout << str << endl;
 }
 
-void callback(const fairytale::SharedEventPtr& evt, int num, fairytale::TestClass, std::string str)
-{
-    LOG(INFO) << evt->getEventName();
-    LOG(INFO) << num;
-    LOG(INFO) << str;
-}
-
-void callback2(const fairytale::SharedEventPtr& evt, int num, std::string str, std::string str2)
+void callback2(Event* evt, int num, std::string str, std::string str2)
 {}
 
 void stressTest()
 {
-    typedef fairytale::Event<int, std::string, std::string> BarEvent;
     fairytale::AutoTimer t;
-    auto ele = std::make_shared<fairytale::Element>();
     for(unsigned i = 0; i < 10000; ++i)
     {
-        auto evt = std::make_shared<BarEvent>("speedTest", ele, 4096, "string1", "string2");
-        auto handler = std::make_shared<BarEvent::Handler>(&callback2);
+        std::unique_ptr<Event> evt(makeEvent<int, std::string, std::string>("speedTest", 4096, "string1", "string2"));
+        std::unique_ptr<EventHandler> handler(makeEventHandler<int, std::string, std::string>(&callback2));
         for(unsigned n = 0; n < 100; ++n)
-            handler->handleEvent(evt);
+            handler->handleEvent(evt.get());
     }
 }
 
 int main()
 {
-    typedef fairytale::Event<int, fairytale::TestClass, std::string> FooEvent;
 
     {
-        auto ele = std::make_shared<fairytale::Element>();
         fairytale::TestClass anotherEle;
-        auto evt = std::make_shared<FooEvent>("lvalueTest", ele, 1024, anotherEle, "lvalueTestStr");
-        auto handler = std::make_shared<FooEvent::Handler>(&callback);
-        handler->handleEvent(evt);
+        std::unique_ptr<Event> evt(makeEvent<int, fairytale::TestClass, std::string>("lvalueTest", 1024, anotherEle, "lvalueTestStr"));
+        std::unique_ptr<EventHandler> handler(makeEventHandler<int, fairytale::TestClass, std::string>(&callback));
+        handler->handleEvent(evt.get());
     }
 
     {
-        auto ele = std::make_shared<fairytale::Element>();
-        auto evt = std::make_shared<FooEvent>("rvalueTest", ele, 2048, fairytale::TestClass(), "rvalueTestStr");
-        auto handler = std::make_shared<FooEvent::Handler>(&callback);
-        handler->handleEvent(evt);
+        std::unique_ptr<Event> evt(makeEvent<int, fairytale::TestClass, std::string>("rvalueTest", 2048, fairytale::TestClass(), "rvalueTestStr"));
+        std::unique_ptr<EventHandler> handler(makeEventHandler<int, fairytale::TestClass, std::string>(&callback));
+        handler->handleEvent(evt.get());
     }
 
     std::vector<std::thread> workers;
