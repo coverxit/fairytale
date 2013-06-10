@@ -25,6 +25,9 @@
 using namespace fairytale;
 using namespace std;
 
+typedef SpecifiedEvent<int, std::string, std::string> speedTestEvent;
+typedef SpecifiedEvent<int, fairytale::TestClass, std::string> valueTestEvent;
+
 void callback(Event* evt, int num, fairytale::TestClass, std::string str)
 {
     cout << evt->getEventName() << endl;
@@ -40,8 +43,8 @@ void stressTest()
     fairytale::AutoTimer t;
     for(unsigned i = 0; i < 10000; ++i)
     {
-        std::unique_ptr<Event> evt(makeEvent<int, std::string, std::string>("speedTest", 4096, "string1", "string2"));
-        std::unique_ptr<EventHandler> handler(makeEventHandler<int, std::string, std::string>(&callback2));
+        std::unique_ptr<Event> evt(new speedTestEvent("speedTest", 4096, "string1", "string2"));
+        std::unique_ptr<EventHandler> handler(new speedTestEvent::Handler(&callback2));
         for(unsigned n = 0; n < 100; ++n)
             handler->handleEvent(evt.get());
     }
@@ -52,25 +55,28 @@ int main()
 
     {
         fairytale::TestClass anotherEle;
-        std::unique_ptr<Event> evt(makeEvent<int, fairytale::TestClass, std::string>("lvalueTest", 1024, anotherEle, "lvalueTestStr"));
-        std::unique_ptr<EventHandler> handler(makeEventHandler<int, fairytale::TestClass, std::string>(&callback));
+        std::unique_ptr<Event> evt(new valueTestEvent("lvalueTest", 1024, anotherEle, "lvalueTestStr"));
+        std::unique_ptr<EventHandler> handler(new valueTestEvent::Handler(&callback));
         handler->handleEvent(evt.get());
     }
 
     {
-        std::unique_ptr<Event> evt(makeEvent<int, fairytale::TestClass, std::string>("rvalueTest", 2048, fairytale::TestClass(), "rvalueTestStr"));
-        std::unique_ptr<EventHandler> handler(makeEventHandler<int, fairytale::TestClass, std::string>(&callback));
+        std::unique_ptr<Event> evt(new valueTestEvent("rvalueTest", 2048, fairytale::TestClass(), "rvalueTestStr"));
+        //std::unique_ptr<EventHandler> handler(makeEventHandler<int, fairytale::TestClass, std::string>(&callback));
+        std::unique_ptr<EventHandler> handler(new valueTestEvent::Handler(&callback));
         handler->handleEvent(evt.get());
     }
 
     std::vector<std::thread> workers;
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < 4; ++i)
     {
-        workers.push_back(std::thread(&stressTest));
+        workers.push_back(std::thread([]() { for(auto i = 0; i < 8; ++i) stressTest(); }));
     }
     for (auto& worker : workers) {
         worker.join();
     }
+
+    stressTest();
 
     return 0;
 }

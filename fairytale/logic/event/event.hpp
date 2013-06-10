@@ -52,8 +52,8 @@ namespace fairytale {
         }
 
     public:
-        Event(std::string&& eventName)
-            : m_eventName(std::forward<std::string>(eventName)) {}
+        Event(std::string eventName)
+            : m_eventName(std::move(eventName)) {}
 
         virtual ~Event() {}
 
@@ -69,56 +69,39 @@ namespace fairytale {
         virtual ~EventHandler() {}
     };
 
-    template<typename...Args> class _EventHandlerImpl;
-
     template<typename...Args>
-    class _EventImpl : public Event {
-        friend class _EventHandlerImpl<Args...>;
+    class SpecifiedEvent : public Event {
+        friend class EventHandler;
 
     public:
-        _EventImpl(std::string&& eventName, Args&&...args)
-            : Event(std::forward<std::string>(eventName))
+        SpecifiedEvent(std::string eventName, Args...args)
+            : Event(std::move(eventName))
         {
-            _pushParam(std::forward<Args>(args)...);
+            _pushParam(std::move(args)...);
         }
 
-        virtual ~_EventImpl() {}
+        virtual ~SpecifiedEvent() {}
+
+        class Handler : public EventHandler {
+        public:
+            typedef std::function<void(Event*, Args...)> CallbackType;
+
+        protected:
+            CallbackType m_callback;
+
+        public:
+            Handler(CallbackType callback) : m_callback(std::move(callback)) {}
+
+            virtual void handleEvent(Event* evt)
+            {
+                SpecifiedEvent<Args...>* realEvent = static_cast<SpecifiedEvent<Args...>*>(evt);
+                size_t stackIndex(0);
+                m_callback(evt, std::forward<Args>(realEvent->template _popParam<Args>(stackIndex))...);
+            }
+
+            virtual ~Handler() {}
+        };
     };
-
-    template<typename...Args>
-    class _EventHandlerImpl : public EventHandler {
-    public:
-        typedef std::function<void(Event*, Args...)> CallbackType;
-
-    protected:
-        CallbackType m_callback;
-
-    public:
-        _EventHandlerImpl(CallbackType&& callback) : m_callback(std::forward<CallbackType>(callback)) {}
-
-        virtual void handleEvent(Event* evt)
-        {
-            _EventImpl<Args...>* realEvent = static_cast<_EventImpl<Args...>*>(evt);
-            size_t stackIndex(0);
-            m_callback(evt, std::forward<Args>(realEvent->template _popParam<Args>(stackIndex))...);
-        }
-
-        virtual ~_EventHandlerImpl() {}
-    };
-
-    // Factory function. Returns naked pointer.
-    template<typename...Args>
-    Event* makeEvent(std::string eventName, Args...args)
-    {
-        return new _EventImpl<Args...>(std::move(eventName), std::move(args)...);
-    }
-
-    // Factory function. Returns naked pointer.
-    template<typename...Args>
-    EventHandler* makeEventHandler(typename _EventHandlerImpl<Args...>::CallbackType callback)
-    {
-        return new _EventHandlerImpl<Args...>(std::move(callback));
-    }
 
 }
 
